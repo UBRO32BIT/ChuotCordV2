@@ -1,0 +1,60 @@
+version: '3.8'  # Specify the Compose file format version
+services:
+  app:
+    container_name: chuotcord-chat-service
+    build: .  # Build the Node.js app from the current directory
+    ports:
+      - "8080:8080"  # Map port 8080 on the host to 8080 in the container
+    depends_on:
+      - redis  # Ensure Redis starts before the app
+      - mongodb  # Ensure MongoDB starts before the app
+    volumes:
+      - .:/usr/src/app  # Mount the current directory for live code updates
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "512M"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
+
+  redis:
+    container_name: chuotcord-redis-service
+    image: redis  # Use the official Redis image
+    ports:
+      - "127.0.0.1:6379:6379"  # Map Redis port 6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "256M"
+
+  mongodb:
+    container_name: chuotcord-mongo-service
+    image: mongo:latest  # Use the official MongoDB image
+    ports:
+      - "27017:27017"  # Map MongoDB port 27017
+    volumes:
+      - mongo_data:/data/db  # Persist MongoDB data
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "128M"
+        reservations:
+          cpus: "0.1"
+          memory: "64M"
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:  # Define a named volume for MongoDB data persistence
