@@ -38,7 +38,7 @@ services:
       resources:
         limits:
           cpus: "0.5"
-          memory: "128M"
+          memory: "256M"
 
   nginx:
     container_name: chuotcord-nginx-service
