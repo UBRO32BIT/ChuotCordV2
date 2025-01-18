@@ -1,24 +1,50 @@
 version: '3.8'  # Specify the Compose file format version
 services:
-  app:
+  server:
     container_name: chuotcord-chat-service
-    build: .  # Build the Node.js app from the current directory
+    build: ./server  # Build the Node.js app from the current directory
     ports:
       - "8080:8080"  # Map port 8080 on the host to 8080 in the container
     depends_on:
       - redis  # Ensure Redis starts before the app
       - mongodb  # Ensure MongoDB starts before the app
     volumes:
-      - .:/usr/src/app  # Mount the current directory for live code updates
+      - ./server:/usr/src/server  # Mount the current directory for live code updates
+      - server_node_modules:/usr/src/server/node_modules  # Persist node_modules
     deploy:
       resources:
         limits:
           cpus: "1.0"
-          memory: "512M"
+          memory: "256M"
         reservations:
           cpus: "0.5"
-          memory: "256M"
-
+          memory: "128M"
+  client:
+    container_name: chuotcord-client-service
+    build: ./client
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/usr/src/client
+      - client_node_modules:/usr/src/client/node_modules
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "128M"
+  nginx:
+    container_name: chuotcord-nginx-service
+    image: nginx:latest  # Use the official Nginx image
+    ports:
+      - "80:80"
+      - "443:443"  # Expose HTTPS port
+    volumes:
+      - ./nginx:/etc/nginx/conf.d  # Mount the custom Nginx configuration
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "64M"
   redis:
     container_name: chuotcord-redis-service
     image: redis  # Use the official Redis image
@@ -32,8 +58,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "256M"
+          cpus: "0.25"
+          memory: "128M"
 
   mongodb:
     container_name: chuotcord-mongo-service
@@ -45,16 +71,14 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "128M"
-        reservations:
-          cpus: "0.1"
+          cpus: "0.15"
           memory: "64M"
     healthcheck:
       test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
-
 volumes:
-  mongo_data:  # Define a named volume for MongoDB data persistence
+  mongo_data:
+  server_node_modules:
+  client_node_modules:

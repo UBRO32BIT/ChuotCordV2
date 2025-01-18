@@ -27,6 +27,8 @@ const envVarsSchema = Joi.object()
     SMTP_PASSWORD: Joi.string().description('password for email server'),
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     SERVER_HOST: Joi.string().description('server host url'),
+    SSL_CERT_PATH: Joi.string().description('SSL certificate path'),
+    SSL_KEY_PATH: Joi.string().description('SSL key path'),
   })
   .unknown();
 
@@ -71,4 +73,6 @@ module.exports = {
   },
   serverHost: envVars.SERVER_HOST,
   clientHost: envVars.CLIENT_HOST,
+  sslCertPath: envVars.SSL_CERT_PATH,
+  sslKeyPath: envVars.SSL_KEY_PATH,
 };

@@ -8,8 +8,8 @@ const connectToMongoDB = require('./database/mongo.database');
 const fs = require('fs');
 
 let server;
-var key = fs.readFileSync(__dirname + '/../selfsigned.key');
-var cert = fs.readFileSync(__dirname + '/../selfsigned.crt');
+var key = fs.readFileSync(config.sslKeyPath);
+var cert = fs.readFileSync(config.sslCertPath);
 var options = { key: key, cert: cert };
 const httpServer = createServer(options, app);
 
