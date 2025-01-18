@@ -46,6 +46,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    depends_on:
+      - server
+      - client
     volumes:
       - ./nginx:/etc/nginx/conf.d
       - ./certs:/etc/nginx/certs  # Mount certificates for Nginx
