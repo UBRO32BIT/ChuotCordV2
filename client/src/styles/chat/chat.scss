@@ -1,0 +1,132 @@
+:root {
+
+    --input-color: #3f4246;
+    --input-border: #CDD9ED;
+    --input-background: #fff;
+    --input-placeholder: #CBD1DC;
+
+    --input-border-focus: #275EFE;
+
+    --group-color: var(--input-color);
+    --group-border: var(--input-border);
+    --group-background: #EEF4FF;
+
+    --group-color-focus: #fff;
+    --group-border-focus: var(--input-border-focus);
+    --group-background-focus: #678EFE;
+
+}
+
+.message-input-field {
+    flex: 1;
+    /* Allow the textarea to grow and take up the remaining space */
+    padding: 8px 16px;
+    margin: 3px 0;
+    line-height: 1.5;
+    /* Adjust line height for multi-line text */
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    border-radius: 6px;
+    resize: none;
+    /* Prevent manual resizing */
+    overflow: hidden;
+    /* Prevent scrollbars unless content exceeds max height */
+    border: 1px solid var(--input-border);
+    background: var(--input-background);
+    color: var(--input-foreground);
+    transition: border 0.3s ease;
+
+    &::placeholder {
+        color: var(--input-placeholder);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: var(--input-border-focus);
+    }
+}
+
+.file-upload-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+    /* Add some spacing between the input field and the button */
+}
+
+.file-input-field {
+    border: 2px solid gray;
+    color: var(--color-foreground);
+    background-color: var(--input-background);
+    border-radius: 8px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    /* Match the height of the input */
+    padding: 0 7px;
+    /* Add consistent padding */
+    cursor: pointer;
+}
+
+.file-upload-wrapper input[type="file"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    /* Keep the file input invisible */
+    height: 100%;
+    width: 100%;
+    cursor: pointer;
+}
+
+body {
+    --color-background: #fafafa;
+    --color-foreground: #1f2023;
+}
+
+body.dark {
+    --color-background: #0c0414;
+    --color-foreground: #EFEFEF;
+    --input-background: #0f0d54;
+}
+
+.chat-container {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+}
+
+/* Scrollbar for Chrome, Edge and Safari */
+*::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+}
+
+*::-webkit-scrollbar-track {
+    border-radius: 5px;
+    background-color: #DFE9EB;
+}
+
+*::-webkit-scrollbar-track:hover {
+    background-color: #B8C0C2;
+}
+
+*::-webkit-scrollbar-track:active {
+    background-color: #B8C0C2;
+}
+
+*::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background-color: #78989B;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: #6A8589;
+}
+
+*::-webkit-scrollbar-thumb:active {
+    background-color: #506568;
+}

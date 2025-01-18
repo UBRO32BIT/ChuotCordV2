@@ -1,0 +1,103 @@
+html {
+	box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after { /* Inherit box-sizing to make it easier to change the property for components that leverage other behavior; see http://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/ */
+	box-sizing: inherit;
+}
+
+.home-page {
+	background: color(bg, 2); /* Fallback for when there is no custom background color defined. */
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-font-smoothing: antialiased;
+	
+	hr {
+		border: 0;
+		@include divider();
+		margin-top: 24px;
+		margin-bottom: 24px;
+	}
+}
+
+.home-page ul, ol {
+	margin-top: 0;
+	margin-bottom: 24px;
+	padding-left: 24px;
+}
+
+.home-page > ul {
+	list-style: disc;
+}
+
+.home-page > ol {
+	list-style: decimal;
+}
+
+.home-page > li > ul,
+.home-page > li > ol {
+	margin-bottom: 0;
+}
+
+.home-page > dl {
+	margin-top: 0;
+	margin-bottom: 24px;
+}
+
+.home-page > dt {
+	@include font-weight(semibold);
+}
+
+.home-page > dd {
+	margin-left: 24px;
+	margin-bottom: 24px;
+}
+
+.home-page > img {
+	height: auto; /* Make sure images are scaled correctly. */
+	max-width: 100%; /* Adhere to container width. */
+	vertical-align: middle;
+}
+
+.home-page > figure {
+	margin: 24px 0; /* Extra wide images within figure tags don't overflow the content area. */
+}
+
+figcaption {
+	@include font-size(7, mobile, true, true);
+	padding: 8px 0;
+}
+
+.home-page > img,
+svg {
+	display: block;
+}
+
+// tables
+.home-page > table {
+	border-collapse: collapse;
+	margin-bottom: 24px;
+	width: 100%;
+}
+
+.home-page > tr {
+	border-bottom: 1px solid color(bg, 3);
+}
+
+.home-page > th {
+	text-align: left;
+}
+
+.home-page > th,
+td {
+	padding: 10px 16px;
+
+	&:first-child {
+		padding-left: 0;
+	}
+
+	&:last-child {
+		padding-right: 0;
+	}
+}
