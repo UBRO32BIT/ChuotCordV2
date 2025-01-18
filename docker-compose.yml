@@ -18,10 +18,10 @@ services:
       resources:
         limits:
           cpus: "1.0"
-          memory: "128M"
+          memory: "512M"
         reservations:
           cpus: "0.5"
-          memory: "128M"
+          memory: "256M"
 
   client:
     container_name: chuotcord-client-service
