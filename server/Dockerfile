@@ -12,5 +12,6 @@ RUN npm install bcryptjs --save
 # Bundle app source
 COPY . /usr/src/server
 RUN mkdir -p /usr/src/server/uploads
+RUN mkdir -p /usr/src/server/uploads/users
 EXPOSE 8080
 CMD ["npm", "start"]

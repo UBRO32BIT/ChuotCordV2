@@ -1,5 +1,6 @@
 const multer = require("multer");
 const path = require("path");
+const config = require("./config");
 
 // Define allowed image extensions
 const allowedImageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
@@ -17,7 +18,7 @@ function imageFileFilter(req, file, cb) {
 // Configure multer for file storage
 const attachmentStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "./uploads/"); // Make sure the 'uploads' folder exists
+        cb(null, config.uploadsPath); // Make sure the 'uploads' folder exists
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname));
@@ -28,7 +29,7 @@ const uploadAttachment = multer({ storage: attachmentStorage });
 // Configure multer for user profile uploads
 const userProfileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "./uploads/users/"); // Make sure the 'uploads/users' folder exists
+        cb(null, config.uploadsPath + "/users"); // Make sure the 'uploads/users' folder exists
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname));
