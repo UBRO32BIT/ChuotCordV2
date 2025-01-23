@@ -29,6 +29,7 @@ const envVarsSchema = Joi.object()
     SERVER_HOST: Joi.string().description('server host url'),
     SSL_CERT_PATH: Joi.string().description('SSL certificate path'),
     SSL_KEY_PATH: Joi.string().description('SSL key path'),
+    UPLOADS_DIR: Joi.string().description('uploads directory path'),
   })
   .unknown();
 
@@ -75,4 +76,5 @@ module.exports = {
   clientHost: envVars.CLIENT_HOST,
   sslCertPath: envVars.SSL_CERT_PATH,
   sslKeyPath: envVars.SSL_KEY_PATH,
+  uploadsPath: envVars.UPLOADS_DIR,
 };

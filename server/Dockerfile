@@ -11,5 +11,6 @@ RUN npm uninstall bcrypt
 RUN npm install bcryptjs --save
 # Bundle app source
 COPY . /usr/src/server
+RUN mkdir -p /usr/src/server/uploads
 EXPOSE 8080
 CMD ["npm", "start"]

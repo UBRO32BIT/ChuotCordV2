@@ -43,7 +43,10 @@ app.use(mongoSanitize());
 app.use(compression());
 
 // enable cors
-app.use(cors({credentials: true, origin: true}));
+app.use(cors({
+  credentials: true, 
+  origin: true
+}));
 app.options('*', cors());
 
 // cookies parser from request data
@@ -61,7 +64,7 @@ if (config.env === 'production') {
 // v1 api routes
 app.use('/v1', routes);
 
-app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
+app.use('/uploads', express.static(config.uploadsPath, {
   setHeaders: (res, filePath) => {
       if (filePath.endsWith('.png') || filePath.endsWith('.jfif')) {
           res.setHeader('Content-Type', 'image/png');
