@@ -1,5 +1,7 @@
 const userService  = require('../../services/v1/user.service');
 const { StatusCodes } = require('http-status-codes');
+const errorHandler = require('./error.controller');
+const logger = require('../../config/logger');
 class UserController {
     async GetUsers(req, res, next) {
         try {
@@ -35,8 +37,8 @@ class UserController {
             res.status(StatusCodes.OK).json(result);
         }
         catch (error) {
-            console.error(error);
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: error.message});
+            logger.error(error);
+            errorHandler(error, req, res, next);
         }
     }
     async GetGroupsByUserId(req, res, next) {
@@ -50,8 +52,8 @@ class UserController {
             })
         }
         catch (error) {
-            console.log(error);
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: error.message});
+            logger.error(error);
+            errorHandler(error, req, res, next);
         }
     }
     async GetUserById(req, res, next) {
@@ -70,8 +72,8 @@ class UserController {
             else res.status(StatusCodes.BAD_REQUEST).json({message: "User ID is required"});
         }
         catch (error) {
-            console.log(error);
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: error.message});
+            logger.error(error);
+            errorHandler(error, req, res, next);
         }
     }
     async UpdateUser(req, res, next) {
@@ -96,8 +98,8 @@ class UserController {
                 data: result,
             });
         } catch (error) {
-            console.error(error);
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
+            logger.error(error);
+            errorHandler(error, req, res, next);
         }
     }
     async BanUser(req, res, next) {
@@ -105,8 +107,8 @@ class UserController {
             res.status(StatusCodes.NO_CONTENT).json({message: "test"});
         }
         catch (error) {
-            console.log(error);
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: error.message});
+            logger.error(error);
+            errorHandler(error, req, res, next);
         }
     }
 }

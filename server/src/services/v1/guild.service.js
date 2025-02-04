@@ -2,6 +2,7 @@ const GuildModel = require("../../models/guild/guild.model");
 const GuildRoles = require("../../models/guild/guildRole.model");
 const GuildPermissions = require("../../models/guild/guildPermission.model");
 const ErrorCodes = require("../../errors/errorCodes");
+const MessageService = require("./message.service");
 const ApiError = require("../../errors/ApiError");
 
 class GuildService {
@@ -71,6 +72,36 @@ class GuildService {
             throw error;
         }
     }
+
+    async UpdateGuild(guildId, updateData) {
+        try {
+            const guild = await GuildModel.findById(guildId);
+            if (!guild) {
+                throw new ApiError(ErrorCodes.GUILD_NOT_FOUND);
+            }
+    
+            // Update only the allowed fields
+            if (updateData.name) guild.name = updateData.name;
+            if (updateData.image) guild.image = updateData.image;
+            if (updateData.logChannel) guild.logChannel = updateData.logChannel;
+            if (typeof updateData.enableMemberVerification !== 'undefined') {
+                guild.enableMemberVerification = updateData.enableMemberVerification;
+            }
+            if (typeof updateData.enableJoinLog !== 'undefined') {
+                guild.enableJoinLog = updateData.enableJoinLog;
+            }
+            if (typeof updateData.canGenerateInvite !== 'undefined') {
+                guild.canGenerateInvite = updateData.canGenerateInvite;
+            }
+    
+            // Save the updated guild
+            await guild.save();
+            return guild;
+        } catch (error) {
+            throw new Error(`Failed to update guild: ${error.message}`);
+        }
+    }
+
     async AddGuildChannel(guildId, channelId) {
         try {
             await GuildModel.findOneAndUpdate(
@@ -82,13 +113,37 @@ class GuildService {
             throw error;
         }
     }
+
+    async TransferOwnership(guildId, newOwnerId) {
+        try {
+            const guild = await GuildModel.findById(guildId);
+            if (!guild) {
+                throw new ApiError(ErrorCodes.GUILD_NOT_FOUND);
+            }
+            if (guild.owner.toString() === newOwnerId) {
+                throw new ApiError(ErrorCodes.ALREADY_OWNER);
+            }
+            guild.owner = newOwnerId;
+            await guild.save();
+        }
+        catch (error) {
+            throw error;
+        }
+    }
     async AddMember(guildId, memberId) {
         try {
+            const guild = await GuildModel.findById(guildId);
+            
             await GuildModel.findByIdAndUpdate(
                 guildId,
                 { $push: { members: { memberId: memberId } } },
                 { new: true, useFindAndModify: false }
             );
+
+            
+            if (guild.logChannel && guild.enableJoinLog) {
+                await MessageService.AddLogMessage(memberId, guild.logChannel, 'join');
+            }
         }
         catch (error) {
             throw error;
@@ -100,6 +155,10 @@ class GuildService {
                 guildId,
                 { $pull: { members: memberId } }
             );
+            const guild = await GuildModel.findById(guildId);
+            if (guild.logChannel && guild.enableJoinLog) {
+                await MessageService.AddLogMessage(memberId, guild.logChannel, 'leave');
+            }
         }
         catch (error) {
             throw error;
@@ -136,6 +195,10 @@ class GuildService {
                 },
                 { new: true, useFindAndModify: false }
             );
+
+            if (guild.logChannel && guild.enableJoinLog) {
+                await MessageService.AddLogMessage(memberId, guild.logChannel, 'ban');
+            }
     
             return { success: true, message: 'Member has been banned successfully' };
         } catch (error) {

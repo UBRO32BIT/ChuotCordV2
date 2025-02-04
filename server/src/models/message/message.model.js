@@ -7,9 +7,14 @@ const messages = new mongoose.Schema({
         ref: 'Users',
         required: true,
     },
+    type: {
+        type: String,
+        enum: ['message', 'join', 'leave', 'ownership', 'kick', 'ban'],
+        default: 'message',
+        required: true,
+    },
     content: {
         type: String,
-        required: true,
     },
     replyId: {
         type: mongoose.Schema.Types.ObjectId,

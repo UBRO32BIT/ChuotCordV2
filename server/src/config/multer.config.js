@@ -24,7 +24,6 @@ const attachmentStorage = multer.diskStorage({
         cb(null, Date.now() + path.extname(file.originalname));
     },
 });
-const uploadAttachment = multer({ storage: attachmentStorage });
 
 // Configure multer for user profile uploads
 const userProfileStorage = multer.diskStorage({
@@ -35,12 +34,30 @@ const userProfileStorage = multer.diskStorage({
         cb(null, Date.now() + path.extname(file.originalname));
     },
 });
+
+const guildImageStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, config.uploadsPath + "/guilds"); // Make sure the 'uploads/guilds' folder exists
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    },
+});
+
+const uploadAttachment = multer({ storage: attachmentStorage });
+
 const uploadUserProfile = multer({
     storage: userProfileStorage,
+    fileFilter: imageFileFilter,
+});
+
+const uploadGuildImage = multer({
+    storage: guildImageStorage,
     fileFilter: imageFileFilter,
 });
 
 module.exports = {
     uploadAttachment,
     uploadUserProfile,
+    uploadGuildImage,
 };

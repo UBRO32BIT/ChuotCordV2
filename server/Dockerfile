@@ -13,5 +13,6 @@ RUN npm install bcryptjs --save
 COPY . /usr/src/server
 RUN mkdir -p /usr/src/server/uploads
 RUN mkdir -p /usr/src/server/uploads/users
+RUN mkdir -p /usr/src/server/uploads/guilds
 EXPOSE 8080
 CMD ["npm", "start"]

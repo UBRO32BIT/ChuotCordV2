@@ -32,4 +32,5 @@ const guildChannels = new mongoose.Schema({
 
 guildChannels.plugin(mongooseDelete, {deletedAt: true});
 
-module.exports = mongoose.model('GuildChannels', guildChannels);
+const GuildChannelModel = mongoose.model('GuildChannels', guildChannels);
+module.exports = GuildChannelModel;

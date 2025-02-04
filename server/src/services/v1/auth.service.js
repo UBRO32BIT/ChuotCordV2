@@ -7,6 +7,7 @@ const moment = require("moment");
 const jwt = require("jsonwebtoken");
 const config = require('../../config/config');
 const ErrorCodes = require('../../errors/errorCodes');
+const ApiError = require('../../errors/ApiError');
 
 const JWT_RECOVERY_SECRET_KEY = config.jwt.recoverySecret;
 const ACCESS_TOKEN_EXPIRATION_MINUTES = config.jwt.accessExpirationMinutes;

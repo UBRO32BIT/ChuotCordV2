@@ -73,6 +73,20 @@ class MessageService {
             throw error;
         }
     }
+
+    async AddLogMessage(userId, channelId, logType) {
+        try {
+            const data = {
+                userId,
+                channelId,
+                type: logType,
+            };
+
+            return await this.AddMessage(data);
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 module.exports = new MessageService;

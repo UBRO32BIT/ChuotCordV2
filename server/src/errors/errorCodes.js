@@ -81,6 +81,11 @@ const ErrorCodes = {
     message: "The current user is already banned from this guild",
     status: StatusCodes.BAD_REQUEST,
   },
+  ALREADY_OWNER: {
+    code: 2003,
+    message: "The current user is already the owner of this guild",
+    status: StatusCodes.BAD_REQUEST,
+  },
   GUILD_INVITE_NOT_FOUND: {
     code: 2101,
     message: "Guild invite not found",

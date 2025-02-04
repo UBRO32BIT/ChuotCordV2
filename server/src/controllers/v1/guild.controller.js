@@ -3,6 +3,7 @@ const logger = require('../../config/logger');
 const guildService = require('../../services/v1/guild.service');
 const userService = require('../../services/v1/user.service');
 const errorHandler = require('./error.controller');
+const config = require('../../config/config');
 
 class GuildController {
     async GetGuilds(req, res, next) {
@@ -63,14 +64,47 @@ class GuildController {
             errorHandler(error, req, res, next);
         }
     }
+
     async UpdateGuild(req, res, next) {
         try {
-            res.status(StatusCodes.OK).json({message: "test"});
-        }
-        catch (error) {
+            const { id } = req.params;
+            const { 
+                name, 
+                logChannel, 
+                enableMemberVerification, 
+                enableJoinLog,
+                canGenerateInvite,
+            } = req.body;
+            
+            // Handle image upload
+            let imageUrl = null;
+            if (req.file) {
+                imageUrl = `/uploads/guilds/${req.file.filename}`;
+            }
+            
+            // Prepare update data
+            const updateData = { 
+                name,
+                logChannel,
+                enableMemberVerification,
+                enableJoinLog,
+                canGenerateInvite,
+            };
+            if (imageUrl) {
+                updateData.image = imageUrl;
+            }
+            
+            const updatedGuild = await guildService.UpdateGuild(id, updateData);
+            
+            res.status(StatusCodes.OK).json({
+                message: "Guild updated",
+                data: updatedGuild,
+            });
+        } catch (error) {
             errorHandler(error, req, res, next);
         }
     }
+
     async RemoveMemberFromGuild(req, res, next) {
         try {
             const { memberId } = req.params;

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const mongooseDelete = require('mongoose-delete');
 const mongoosePaginate = require('mongoose-paginate-v2');
+const config = require('../../config/config');
 
 const guilds = new mongoose.Schema({
     name: {
@@ -15,11 +16,31 @@ const guilds = new mongoose.Schema({
         type: String,
         required: false,
         default: null,
+        get: function (value) {
+            const host = config.serverHost;
+            return value ? `${host}${value}` : null;
+        },
     },
     channels: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'GuildChannels',
     }],
+    logChannel: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'GuildChannels',
+    },
+    enableMemberVerification: {
+        type: Boolean,
+        default: false,
+    },
+    enableJoinLog: {
+        type: Boolean,
+        default: false,
+    },
+    canGenerateInvite: {
+        type: Boolean,
+        default: true,
+    },
     members: [{
         memberId: {
             type: mongoose.Schema.Types.ObjectId,
