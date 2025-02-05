@@ -80,7 +80,11 @@ const guilds = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'GuildRoles'
     }]
-},{timestamps: true})
+}, {
+    timestamps: true, 
+    toObject : {getters: true}, 
+    toJSON : {getters: true}
+})
 
 guilds.plugin(mongooseDelete, {deletedAt: true});
 guilds.plugin(mongoosePaginate);

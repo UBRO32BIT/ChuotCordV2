@@ -15,7 +15,10 @@ export interface Guild {
     image: string | null,
     roles: Role[],
     members: Member[],
-    channels: ChannelPartial[]
+    channels: ChannelPartial[],
+    enableMemberVerification: boolean;
+    enableJoinLog: boolean;
+    canGenerateInvite: boolean;
 }
 
 export interface Role {

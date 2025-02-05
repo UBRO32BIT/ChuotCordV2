@@ -146,6 +146,29 @@ class GuildController {
             errorHandler(error, req, res, next);
         }
     }
+    async TransferOwnership(req, res, next) {
+        try {
+            const { id: guildId } = req.params;
+            const { newOwnerId } = req.body;
+    
+            if (!newOwnerId) {
+                return res.status(StatusCodes.BAD_REQUEST).json({
+                    message: "New owner ID is required",
+                });
+            }
+    
+            logger.info(`[GuildController]: Transferring ownership of guild ${guildId} to user ${newOwnerId}`);
+    
+            await guildService.TransferOwnership(guildId, newOwnerId);
+    
+            res.status(StatusCodes.OK).json({
+                message: "Guild ownership transferred successfully",
+            });
+        } catch (error) {
+            logger.error(`[GuildController]: Error transferring ownership: ${error.message}`);
+            errorHandler(error, req, res, next);
+        }
+    }    
     async DeleteGuild(req, res, next) {
         try {
             const { userId } = req.user;

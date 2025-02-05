@@ -54,10 +54,35 @@ const GetGuildRoles = async (guildId: string) => {
         throw Error(error.response.data.message)
     })
 }
+
+const UpdateGuild = async (guildId: string, data: any) => {
+    return axiosClient.patch(`/guilds/${guildId}`, data)
+    .then((res) => {
+        return res.data.data;
+    })
+    .catch((error) => {
+        console.error(error);
+        throw Error(error.response.data.message);
+    });
+};
+
+const TransferOwnership = async (guildId: string, newOwnerId: string) => {
+    return axiosClient.patch(`/guilds/${guildId}/transfer-ownership`, { newOwnerId })
+    .then((res) => {
+        return res.data.data;
+    })
+    .catch((error) => {
+        console.error(error);
+        throw Error(error.response.data.message);
+    });
+};
+
 export {
     GetGuilds,
     GetGuildById,
     CreateGuild,
     DeleteGuild,
     GetGuildRoles,
+    UpdateGuild,
+    TransferOwnership,
 }

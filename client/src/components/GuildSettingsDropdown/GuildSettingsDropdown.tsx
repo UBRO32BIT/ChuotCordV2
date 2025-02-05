@@ -12,8 +12,9 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import ShieldIcon from '@mui/icons-material/Shield';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import GroupIcon from '@mui/icons-material/Group';
 import MenuList from "@mui/material/MenuList";
-import { Guild, InvitePartial, Role } from "../../shared/guild.interface";
+import { Guild, InvitePartial, Member, Role } from "../../shared/guild.interface";
 import { useDispatch, useSelector } from "react-redux";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -24,10 +25,10 @@ import Button from "@mui/material/Button";
 import React, { ChangeEvent } from "react";
 import * as yup from "yup";
 import { useSnackbar } from "notistack";
-import { DeleteGuild, GetGuildRoles } from "../../services/guild.service";
+import { DeleteGuild, GetGuildRoles, TransferOwnership, UpdateGuild } from "../../services/guild.service";
 import { removeGuild } from "../../redux/slices/guildsSlice";
 import { useNavigate } from "react-router-dom";
-import { Avatar, Chip, Divider, TextField } from "@mui/material";
+import { Avatar, Chip, Divider, FormControl, FormControlLabel, InputLabel, Select, Switch, TextField } from "@mui/material";
 import { GenerateInvite, GetInvitesByGuildId } from "../../services/invite.service";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -37,11 +38,13 @@ interface GuildInfoProps {
     updateGuild: (updatedAttributes: Partial<Guild>) => void;
 }
 
-const MAX_FILE_SIZE = 102400; //100KB
 const updateGuildSchema = yup.object().shape({
-    name: yup.string()
-        .required("Guild name is required!"),
-})
+    name: yup.string(),
+    enableMemberVerification: yup.boolean(),
+    enableJoinLog: yup.boolean(),
+    canGenerateInvite: yup.boolean()
+});
+
 export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoProps) {
     const user = useSelector((state: any) => state.user.user);
     const {
@@ -60,6 +63,9 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
     const [openInviteDialog, setOpenInviteDialog] = React.useState(false);
     const [openManageRoleDialog, setOpenManageRoleDialog] = React.useState(false);
     const [openDisbandDialog, setOpenDisbandDialog] = React.useState(false);
+    const [openTransferOwnershipDialog, setOpenTransferOwnershipDialog] = React.useState(false);
+    const [members, setMembers] = React.useState<Member[]>([]);
+    const [selectedMemberId, setSelectedMemberId] = React.useState<string>('');
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -68,6 +74,14 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
         const result = await GetInvitesByGuildId(guild._id);
         setInvites(result);
     }
+
+    const fetchMembers = async () => {
+        try {
+            setMembers(guild.members);
+        } catch (error: any) {
+            enqueueSnackbar(error.message, { variant: 'error' });
+        }
+    };
 
     const fetchRoles = async () => {
         const result = await GetGuildRoles(guild._id);
@@ -79,6 +93,22 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
             setGuildImage(e.target.files[0]);
         }
     };
+
+    const handleTransferOwnership = async () => {
+        if (!selectedMemberId) {
+            enqueueSnackbar('Please select a member to transfer ownership.', { variant: 'warning' });
+            return;
+        }
+        try {
+            await TransferOwnership(guild._id, selectedMemberId);
+            enqueueSnackbar('Ownership transferred successfully!', { variant: 'success' });
+            handleCloseTransferOwnershipDialog();
+        } catch (error: any) {
+            console.error(error);
+            enqueueSnackbar(error.message, { variant: 'error' });
+        }
+    };
+
     const handleClickOpenEditDialog = () => {
         setOpenEditDialog(true);
     }
@@ -102,15 +132,38 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
         setOpenManageRoleDialog(true);
         await fetchRoles();
     }
+    const handleClickOpenTransferOwnershipDialog = async () => {
+        await fetchMembers();
+        setOpenTransferOwnershipDialog(true);
+    };
 
-    const onUpdateGuild = async (event: any) => {
+    const handleCloseTransferOwnershipDialog = () => {
+        setOpenTransferOwnershipDialog(false);
+    };
+
+    const handleConfirmTransferOwnership = async () => {
+        await handleTransferOwnership();
+        handleCloseTransferOwnershipDialog();
+    };
+
+    const onUpdateGuild = async (data: any) => {
         try {
-            console.log(event);
-        }
-        catch (error) {
+            const updatedAttributes = {
+                name: data.name,
+                enableMemberVerification: data.enableMemberVerification,
+                enableJoinLog: data.enableJoinLog,
+                canGenerateInvite: data.canGenerateInvite
+            };
 
+            const result = await UpdateGuild(guild._id, updatedAttributes);
+            updateGuild(result); // Update UI state
+            enqueueSnackbar('Guild updated successfully!', { variant: 'success' });
+            handleCloseEditDialog();
+        } catch (error: any) {
+            console.error(error);
+            enqueueSnackbar(error.message, { variant: 'error' });
         }
-    }
+    };
 
     const onCreateInvite = async () => {
         try {
@@ -165,17 +218,34 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
                 p: 0,
             }}>
                 <MenuList>
-                    <MenuItem>
-                        <Box onClick={handleClickOpenEditDialog}
-                            sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 0,
-                            }}>
-                            <ListItemIcon><EditIcon /></ListItemIcon>
-                            <ListItemText>Edit guild profile</ListItemText>
-                        </Box>
-                    </MenuItem>
+                    {guild.owner === user._id && (
+                        <MenuItem>
+                            <Box
+                                onClick={handleClickOpenEditDialog}
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 0,
+                                }}>
+                                <ListItemIcon><EditIcon /></ListItemIcon>
+                                <ListItemText>Edit guild profile</ListItemText>
+                            </Box>
+                        </MenuItem>
+                    )}
+                    {guild.owner === user._id && (
+                        <MenuItem>
+                            <Box
+                                onClick={handleClickOpenTransferOwnershipDialog}
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 0,
+                                }}>
+                                <ListItemIcon><GroupIcon /></ListItemIcon>
+                                <ListItemText>Transfer Ownership</ListItemText>
+                            </Box>
+                        </MenuItem>
+                    )}
                     <MenuItem>
                         <Box onClick={handleClickOpenInviteDialog}
                             sx={{
@@ -327,8 +397,8 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
             key={guild._id}
         >
             <DialogTitle>Edit Guild</DialogTitle>
-            <DialogContent>
-                <form onSubmit={handleUpdateGuild(onUpdateGuild)}>
+            <form onSubmit={handleUpdateGuild(onUpdateGuild)}>
+                <DialogContent>
                     <Box sx={{
                         py: 1,
                         rowGap: 1,
@@ -350,7 +420,7 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
                         </Box>
                         <TextField
                             id="name"
-                            label="Guild name"
+                            label="Guild Name"
                             fullWidth
                             variant="outlined"
                             error={!!updateGuildErrors.name}
@@ -358,12 +428,60 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
                             {...registerUpdateGuild("name")}
                             defaultValue={guild.name}
                         />
+
+                        <FormControlLabel
+                            control={<Switch {...registerUpdateGuild("enableMemberVerification")} defaultChecked={guild.enableMemberVerification} />}
+                            label="Enable Member Verification"
+                        />
+
+                        <FormControlLabel
+                            control={<Switch {...registerUpdateGuild("enableJoinLog")} defaultChecked={guild.enableJoinLog} />}
+                            label="Enable Join Log"
+                        />
+
+                        <FormControlLabel
+                            control={<Switch {...registerUpdateGuild("canGenerateInvite")} defaultChecked={guild.canGenerateInvite} />}
+                            label="Can Generate Invite"
+                        />
                     </Box>
-                </form>
+
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseEditDialog}>Cancel</Button>
+                    <Button type="submit" color="warning">Submit</Button>
+                </DialogActions>
+            </form>
+        </Dialog>
+        <Dialog
+            open={openTransferOwnershipDialog}
+            keepMounted
+            onClose={handleCloseTransferOwnershipDialog}
+            aria-describedby="alert-dialog-slide-description"
+        >
+            <DialogTitle>Transfer Ownership</DialogTitle>
+            <DialogContent>
+                <DialogContentText id="alert-dialog-slide-description">
+                    Select a member to transfer ownership of {guild?.name}. This action cannot be undone.
+                </DialogContentText>
+                <FormControl fullWidth sx={{ mt: 2 }}>
+                    <InputLabel>Select Member</InputLabel>
+                    <Select
+                        value={selectedMemberId}
+                        onChange={(e) => setSelectedMemberId(e.target.value)}
+                    >
+                        {members.map((member) => (
+                            <MenuItem key={member._id} value={member._id}>
+                                {member.memberId.username}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCloseEditDialog}>Cancel</Button>
-                <Button type="submit" color="warning">Submit</Button>
+                <Button onClick={handleCloseTransferOwnershipDialog}>Cancel</Button>
+                <Button onClick={handleTransferOwnership} disabled={!selectedMemberId} color="warning">
+                    Confirm
+                </Button>
             </DialogActions>
         </Dialog>
     </Box>

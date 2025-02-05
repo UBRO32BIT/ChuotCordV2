@@ -1,5 +1,5 @@
 import React from "react";
-import { Avatar, Box, Button, Checkbox, FormControl, FormControlLabel, FormLabel, Grid, Link, Paper, TextField, Typography } from "@mui/material";
+import { Box, Button, FormControl, FormLabel, Grid, Link, Paper, TextField, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
@@ -20,11 +20,9 @@ const loginSchema = yup.object().shape({
 });
 
 export default function Login() {
-    const { setAuth } = useAuth();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const isAuthenticated = useSelector((state: any) => state.user.isAuthenticated);
-    const { enqueueSnackbar } = useSnackbar();
     const [errorResponse, setErrorResponse] = React.useState<string>("");
     const [uploading, setUploading] = React.useState(false);
     const {

@@ -21,6 +21,7 @@ router.post('/:id/ban-member', CheckAuth, AuthorizeGuild, guildController.BanMem
 router.patch('/:id', CheckAuth, AuthorizeGuild, uploadGuildImage.single("image"), guildController.UpdateGuild);
 router.patch('/:id/remove-member/:memberId', CheckAuth, AuthorizeGuild, ValidateRemoveMember, guildController.RemoveMemberFromGuild);
 router.delete('/:id', CheckAuth, AuthorizeGuild, guildController.DeleteGuild);
+router.patch('/:id/transfer-ownership', CheckAuth, AuthorizeGuild, guildController.TransferOwnership);
 
 //Routes for guild channels
 router.use('/:id/channels', channelRoute);

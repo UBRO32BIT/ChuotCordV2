@@ -120,9 +120,18 @@ class GuildService {
             if (!guild) {
                 throw new ApiError(ErrorCodes.GUILD_NOT_FOUND);
             }
+
             if (guild.owner.toString() === newOwnerId) {
                 throw new ApiError(ErrorCodes.ALREADY_OWNER);
             }
+
+            const isMember = guild.members.some(
+                member => member.memberId.toString() === newOwnerId
+            );
+            if (!isMember) {
+                throw new ApiError(ErrorCodes.NOT_A_MEMBER);
+            }
+            
             guild.owner = newOwnerId;
             await guild.save();
         }

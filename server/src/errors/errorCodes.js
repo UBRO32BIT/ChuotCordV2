@@ -86,6 +86,11 @@ const ErrorCodes = {
     message: "The current user is already the owner of this guild",
     status: StatusCodes.BAD_REQUEST,
   },
+  NOT_A_MEMBER: {
+    code: 2004,
+    message: "Member not found in this guild",
+    status: StatusCodes.NOT_FOUND,
+  },
   GUILD_INVITE_NOT_FOUND: {
     code: 2101,
     message: "Guild invite not found",
