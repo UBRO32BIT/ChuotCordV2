@@ -102,7 +102,7 @@ export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
         }}>
             <Typography variant="button" fontWeight="bold" sx={{ mx: 1 }}>Channels - {channels && channels.length}</Typography>
             <IconButton onClick={handleOpenCreateChannelModal}>
-                <AddIcon fontSize="small" />
+                <AddIcon fontSize="small" className="guild-addition-btn"/>
             </IconButton>
         </Box>
         {channels && channels.map && channels.map((channel) => (

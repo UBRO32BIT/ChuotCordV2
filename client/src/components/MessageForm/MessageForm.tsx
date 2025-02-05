@@ -6,6 +6,7 @@ import { Channel } from "../../shared/guild.interface";
 import { Cancel01Icon } from "hugeicons-react";
 import { AddMessage } from "../../services/message.service";
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import SendIcon from '@mui/icons-material/Send';
 import MemberTyping from "../MemberTyping/MemberTyping";
 
 // Utility function to debounce events
@@ -22,6 +23,7 @@ const debounce = (func: (...args: any[]) => void, delay: number) => {
 export default function MessageForm(channel: Channel) {
     const [fileList, setFileList] = React.useState<File[]>([]);
     const [previewUrlList, setPreviewUrlList] = React.useState<string[]>([]);
+    const [isDragging, setIsDragging] = React.useState(false);
     const [message, setMessage] = React.useState<string>('');
     const socket = useSocket();
 
@@ -41,6 +43,39 @@ export default function MessageForm(channel: Channel) {
             setFileList(Array.from(event.target.files));
         }
     }
+    const onPaste = (event: ClipboardEvent) => {
+        if (event.clipboardData?.files.length) {
+            const pastedFiles = Array.from(event.clipboardData.files);
+            setFileList((prev) => [...prev, ...pastedFiles]);
+        }
+    };
+
+    // drag event handlers
+    const handleDragEnter = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        setFileList(prev => [...prev, ...droppedFiles]);
+    };
     const removeImage = (index: number) => {
         // Remove the image from previewUrlList
         const updatedPreviewUrlList = previewUrlList.filter((_, i) => i !== index);
@@ -97,8 +132,14 @@ export default function MessageForm(channel: Channel) {
     return <Box sx={{
         display: "flex",
         flexDirection: "column",
+        position: "relative",
         px: 3,
-    }}>
+    }}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+    >
         {/* Image append */}
         {previewUrlList && (
             <Box
@@ -109,6 +150,27 @@ export default function MessageForm(channel: Channel) {
                     flexWrap: "wrap",
                 }}
             >
+                {isDragging && (
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            zIndex: 10,
+                            borderRadius: '8px',
+                            border: '2px dashed white'
+                        }}
+                    >
+                        Drop files here
+                    </Box>
+                )}
                 {fileList.map((file, index) => {
                     const fileType = file.type.split("/")[0]; // Get the type (e.g., "image", "video")
                     return (
@@ -180,6 +242,7 @@ export default function MessageForm(channel: Channel) {
                     onChange={onMessageChange}
                     autoComplete="off"
                     placeholder="Type something..."
+                    onPaste={onPaste as any}
                     className="message-input-field"
                     rows={1}
                     onInput={(e: any) => {
@@ -193,11 +256,16 @@ export default function MessageForm(channel: Channel) {
                         }
                     }}
                 />
-                <div className="file-upload-wrapper">
-                    <button className="file-input-field">
-                        <InsertDriveFileIcon />
+                <div className="message-form-actions">
+                    <div className="file-upload-wrapper">
+                        <button className="file-input-field">
+                            <InsertDriveFileIcon />
+                        </button>
+                        <input type="file" id="file-input" onChange={onFileChange} multiple />
+                    </div>
+                    <button type="submit" className="submit-button">
+                        <SendIcon />
                     </button>
-                    <input type="file" id="file-input" onChange={onFileChange} multiple />
                 </div>
             </Box>
         </form>

@@ -1,13 +1,10 @@
 import React from 'react';
 import { Box, Avatar, Typography } from '@mui/material';
-import ImageIcon from '@mui/icons-material/Image';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
 import { Attachment } from '../../shared/attachment.interface';
 import { Message } from '../../shared/message.interface';
 import { formatDateTime } from '../../utils/date';
 import SyntaxHighlighter from 'react-syntax-highlighter';
-import { materialDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getLanguageFromExtension } from '../../utils/file';
 
 export default function MessageComponent(message: Message) {
@@ -92,9 +89,9 @@ export default function MessageComponent(message: Message) {
                             mt: 1,
                         }}
                     >
-                        <InsertDriveFileIcon color="action" sx={{ mr: 1 }} />
+                        <InsertDriveFileIcon sx={{ mr: 1 }} className='file-icon'/>
                         <a
-                            href={attachment.url}
+                            href={attachment.fullUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{

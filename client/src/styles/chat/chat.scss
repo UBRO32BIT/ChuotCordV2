@@ -14,7 +14,10 @@
     --group-color-focus: #fff;
     --group-border-focus: var(--input-border-focus);
     --group-background-focus: #678EFE;
+}
 
+.guild-addition-btn {
+    color: var(--color-foreground);
 }
 
 .message-input-field {
@@ -53,7 +56,10 @@
     display: flex;
     align-items: center;
     margin-left: 8px;
-    /* Add some spacing between the input field and the button */
+}
+
+.file-icon {
+    color: var(--color-foreground);
 }
 
 .file-input-field {
@@ -66,9 +72,7 @@
     align-items: center;
     justify-content: center;
     height: 38px;
-    /* Match the height of the input */
     padding: 0 7px;
-    /* Add consistent padding */
     cursor: pointer;
 }
 
@@ -81,6 +85,32 @@
     height: 100%;
     width: 100%;
     cursor: pointer;
+}
+
+.message-form-container {
+    &.dragging {
+        .message-input-field {
+            border-color: var(--input-border-focus);
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    .drag-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        z-index: 10;
+        border-radius: 8px;
+        border: 2px dashed white;
+        pointer-events: none;
+    }
 }
 
 body {
@@ -97,12 +127,67 @@ body.dark {
 .chat-container {
     background-color: var(--color-background);
     color: var(--color-foreground);
+
+    // Mobile styles
+    @media (max-width: 600px) {
+        .message-input-field {
+            font-size: 16px;
+            padding: 6px 12px;
+        }
+
+        .file-upload-wrapper {
+            margin-left: 4px;
+        }
+
+        .file-input-field {
+            height: 34px;
+            padding: 0 5px;
+        }
+    }
+
+    .right-drawer {
+        @media (max-width: 600px) {
+            width: 240px;
+            transition: transform 0.3s ease;
+            
+            &.closed {
+                transform: translateX(100%);
+            }
+        }
+    }
 }
 
-/* Scrollbar for Chrome, Edge and Safari */
-*::-webkit-scrollbar {
-    height: 10px;
-    width: 10px;
+.message-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+}
+
+.submit-button {
+    border: 2px solid gray;
+    color: var(--color-foreground);
+    background-color: var(--input-background);
+    border-radius: 8px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    padding: 0 7px;
+    cursor: pointer;
+    
+    &:hover {
+        background-color: rgba(128, 128, 128, 0.1);
+    }
+}
+
+// Adjust scrollbar for mobile
+@media (max-width: 600px) {
+    *::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
 }
 
 *::-webkit-scrollbar-track {
