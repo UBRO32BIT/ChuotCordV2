@@ -26,7 +26,11 @@ const changePassword = async (oldPassword: string, newPassword: string) => {
 }
 
 const updateInformation = async (data: any) => {
-    return axiosClient.patch(`/users`, data)
+    return axiosClient.patch(`/users/update`, data, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        }
+    })
         .then((res) => {
             return res.data.data;
         })

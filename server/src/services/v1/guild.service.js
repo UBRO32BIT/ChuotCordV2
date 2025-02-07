@@ -96,7 +96,7 @@ class GuildService {
     
             // Save the updated guild
             await guild.save();
-            return guild;
+            return await this.GetGuildById(guildId);
         } catch (error) {
             throw new Error(`Failed to update guild: ${error.message}`);
         }

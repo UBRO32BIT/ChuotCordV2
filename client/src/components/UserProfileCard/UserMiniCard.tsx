@@ -84,7 +84,7 @@ export const UserMiniCard = () => {
                         'aria-labelledby': 'basic-button',
                     }}
                 >
-                    <MenuItem onClick={handleClose}>
+                    <MenuItem onClick={() => { navigate("/user-settings"); handleClose(); }}>
                         <ListItemIcon><PersonIcon /></ListItemIcon>
                         <ListItemText>Profile</ListItemText>
                     </MenuItem>

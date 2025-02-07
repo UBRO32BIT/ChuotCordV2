@@ -2,7 +2,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Avatar, Button, FormControl, FormLabel, TextField, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import * as yup from "yup";
@@ -28,14 +28,21 @@ export default function UserSettings() {
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
     const [guildImageSrc, setGuildImageSrc] = React.useState<string>('');
     const [profilePicture, setProfilePicture] = React.useState<File>();
+    const [isProfileChanged, setIsProfileChanged] = useState(false);
+
     const {
-        register: registerUpdateGuild,
-        handleSubmit: handleUpdateGuild,
+        register: registerUpdateProfile,
+        handleSubmit: handleUpdateProfile,
         setValue: setUpdateGuildValue,
+        watch: watchUpdateProfile,
         formState: { errors: updateGuildErrors }
     } = useForm({
         resolver: yupResolver(updateProfileSchema),
+        defaultValues: {
+            description: user.description,
+        }
     })
+
     const {
         register: registerUserInformation,
         handleSubmit: handleUserInformationSubmit,
@@ -53,6 +60,16 @@ export default function UserSettings() {
         resolver: yupResolver(changePasswordSchema),
     });
 
+    const watchDescription = watchUpdateProfile("description");
+
+    useEffect(() => {
+        if (watchDescription !== user.description || profilePicture) {
+            setIsProfileChanged(true);
+        } else {
+            setIsProfileChanged(false);
+        }
+    }, [watchDescription, profilePicture, user.description]);
+
     const handleProfilePictureChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             setProfilePicture(e.target.files[0]);
@@ -61,13 +78,19 @@ export default function UserSettings() {
 
     const onUserProfileUpdate = async (data: any) => {
         try {
-            // await updateInformation(data);
-            // enqueueSnackbar("User information updated successfully!", { variant: "success" });
+            const formData = new FormData();
+            formData.append("profileDescription", data.description);
+            if (profilePicture) {
+                formData.append("profilePicture", profilePicture);
+            }
+            await updateInformation(formData);
+            enqueueSnackbar("User profile updated successfully!", { variant: "success" });
+            setIsProfileChanged(false); // Reset the change detection after successful update
         } catch (error: any) {
             enqueueSnackbar(error.message || "Failed to update user information.", { variant: "error" });
         }
     };
-    
+
     const onChangePassword = async (data: any) => {
         try {
             await changePassword(data.currentPassword, data.newPassword);
@@ -78,11 +101,10 @@ export default function UserSettings() {
     };
 
     React.useEffect(() => {
-        console.log(profilePicture);
         if (profilePicture) {
             const objectUrl = URL.createObjectURL(profilePicture);
             setGuildImageSrc(objectUrl);
-        
+
             // Clean up the object URL when the component unmounts or the file changes
             return () => URL.revokeObjectURL(objectUrl);
         } else if (user.profilePicture) {
@@ -105,37 +127,45 @@ export default function UserSettings() {
                 textAlign: "start"
             }}>
                 <Typography variant="h2">Profile</Typography>
-                <form onSubmit={handleUpdateGuild(onUserProfileUpdate)}>
+                <form onSubmit={handleUpdateProfile(onUserProfileUpdate)}>
                     <Box sx={{
                         py: 1,
                         rowGap: 1,
                     }}>
-                        <Avatar 
-                            src={guildImageSrc} 
+                        <Avatar
+                            src={guildImageSrc}
                             alt="Profile picture"
-                            sx={{ width: 64, height: 64}}
+                            sx={{ width: 64, height: 64 }}
                         />
                         <Box sx={{
                             pb: 3
                         }}>
-                            <input 
-                                type="file" 
+                            <input
+                                type="file"
                                 onChange={handleProfilePictureChange}
                                 accept="image/*"
                             />
                             <div>{profilePicture && `${profilePicture.name} - ${profilePicture.type}`}</div>
                         </Box>
-                        <TextField 
+                        <TextField
                             id="description"
                             label="Description"
-                            fullWidth 
+                            fullWidth
                             variant="outlined"
                             error={!!updateGuildErrors.description}
                             helperText={updateGuildErrors.description?.message}
-                            {...registerUpdateGuild("description")}
-                            defaultValue={user.description} 
+                            {...registerUpdateProfile("description")}
+                            defaultValue={user.description}
                         />
                     </Box>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        disabled={!isProfileChanged}
+                    >
+                        Confirm changes
+                    </Button>
                 </form>
             </Box>
             <Box sx={{
@@ -176,7 +206,7 @@ export default function UserSettings() {
                             error={!!loginErrors.currentPassword}
                             helperText={loginErrors.currentPassword?.message}
                             color={loginErrors.currentPassword ? "error" : "primary"}
-                            defaultValue={user.email} 
+                            defaultValue={user.email}
                             {...registerUserInformation("email")}
                         />
                     </FormControl>
@@ -190,7 +220,7 @@ export default function UserSettings() {
                             variant="outlined"
                             error={!!loginErrors.newPassword}
                             helperText={loginErrors.newPassword?.message}
-                            defaultValue={user.phoneNumber} 
+                            defaultValue={user.phoneNumber}
                             {...registerUserInformation("phoneNumber")}
                         />
                     </FormControl>

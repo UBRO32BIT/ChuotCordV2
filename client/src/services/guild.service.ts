@@ -56,7 +56,11 @@ const GetGuildRoles = async (guildId: string) => {
 }
 
 const UpdateGuild = async (guildId: string, data: any) => {
-    return axiosClient.patch(`/guilds/${guildId}`, data)
+    return axiosClient.patch(`/guilds/${guildId}`, data, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        }
+    })
     .then((res) => {
         return res.data.data;
     })

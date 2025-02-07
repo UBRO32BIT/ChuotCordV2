@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Avatar, Typography } from '@mui/material';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { Attachment } from '../../shared/attachment.interface';
-import { Message } from '../../shared/message.interface';
+import { Message, MessageType } from '../../shared/message.interface';
 import { formatDateTime } from '../../utils/date';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { getLanguageFromExtension } from '../../utils/file';
@@ -89,7 +89,7 @@ export default function MessageComponent(message: Message) {
                             mt: 1,
                         }}
                     >
-                        <InsertDriveFileIcon sx={{ mr: 1 }} className='file-icon'/>
+                        <InsertDriveFileIcon sx={{ mr: 1 }} className='file-icon' />
                         <a
                             href={attachment.fullUrl}
                             target="_blank"
@@ -105,7 +105,71 @@ export default function MessageComponent(message: Message) {
                 );
         }
     };
+    const renderMessageContent = () => {
+        switch (message.type) {
+            case MessageType.JOIN:
+                return <>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            gap: 1,
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Typography>{message.sender.username} joined the guild.</Typography>
+                        <Typography variant="body2" color="gray">
+                            {formatDateTime(message.timestamp)}
+                        </Typography>
+                    </Box>
+                </>
 
+            case MessageType.LEAVE:
+                return <Typography>{message.sender.username} left the guild.</Typography>;
+
+            case MessageType.OWNERSHIP:
+                return <Typography>{message.sender.username} is now the owner.</Typography>;
+
+            case MessageType.KICK:
+                return <Typography>{message.sender.username} was kicked from the guild.</Typography>;
+
+            case MessageType.BAN:
+                return <Typography>{message.sender.username} was banned from the guild.</Typography>;
+            default:
+                return <>
+                    <Box>
+                        <Avatar
+                            src={message.sender.profilePicture}
+                            alt=""
+                            sx={{ width: 42, height: 42 }}
+                        />
+                    </Box>
+                    <Box>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                gap: 1,
+                                alignItems: 'center',
+                            }}
+                        >
+                            <Typography variant="body1" fontWeight="bold">
+                                {message.sender.username}
+                            </Typography>
+                            <Typography variant="body2" color="gray">
+                                {formatDateTime(message.timestamp)}
+                            </Typography>
+                        </Box>
+                        <Box>{message.content}</Box>
+                        <Box>
+                            {message.attachments && message.attachments.length > 0 && (
+                                <Box sx={{ mt: 1 }}>
+                                    {message.attachments.map(renderAttachment)}
+                                </Box>
+                            )}
+                        </Box>
+                    </Box>
+                </>
+        }
+    };
 
     return (
         <Box
@@ -115,37 +179,7 @@ export default function MessageComponent(message: Message) {
                 py: 0.5,
             }}
         >
-            <Box>
-                <Avatar
-                    src={message.sender.profilePicture}
-                    alt=""
-                    sx={{ width: 42, height: 42 }}
-                />
-            </Box>
-            <Box>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        gap: 1,
-                        alignItems: 'center',
-                    }}
-                >
-                    <Typography variant="body1" fontWeight="bold">
-                        {message.sender.username}
-                    </Typography>
-                    <Typography variant="body2" color="gray">
-                        {formatDateTime(message.timestamp)}
-                    </Typography>
-                </Box>
-                <Box>{message.content}</Box>
-                <Box>
-                    {message.attachments && message.attachments.length > 0 && (
-                        <Box sx={{ mt: 1 }}>
-                            {message.attachments.map(renderAttachment)}
-                        </Box>
-                    )}
-                </Box>
-            </Box>
+            {renderMessageContent()}
         </Box>
     );
 }

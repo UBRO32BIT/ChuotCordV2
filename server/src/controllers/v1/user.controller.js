@@ -79,7 +79,11 @@ class UserController {
     async UpdateUser(req, res, next) {
         try {
             const { userId } = req.user;
-            const { phoneNumber } = req.body;
+            const { 
+                phoneNumber, 
+                profileDescription, 
+                onlinePresence 
+            } = req.body;
     
             // Check if a profile picture was uploaded
             const profilePicture = req.file ? `/uploads/users/${req.file.filename}` : undefined;
@@ -87,6 +91,8 @@ class UserController {
             // Construct the data object
             const data = {
                 phoneNumber,
+                profileDescription,
+                onlinePresence,
                 ...(profilePicture && { profilePicture }), // Only include if a new profile picture is uploaded
             };
     

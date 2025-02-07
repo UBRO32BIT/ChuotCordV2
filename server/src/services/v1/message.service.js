@@ -47,6 +47,7 @@ class MessageService {
                 sender: data.userId,
                 content: data.message,
                 replyId: data.replyId,
+                type: data.type,
                 attachments, // Either populated with IDs or remains an empty array
                 channelId: data.channelId,
             };

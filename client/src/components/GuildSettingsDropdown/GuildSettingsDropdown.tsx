@@ -14,7 +14,7 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import GroupIcon from '@mui/icons-material/Group';
 import MenuList from "@mui/material/MenuList";
-import { Guild, InvitePartial, Member, Role } from "../../shared/guild.interface";
+import { ChannelPartial, Guild, InvitePartial, Member, Role } from "../../shared/guild.interface";
 import { useDispatch, useSelector } from "react-redux";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -65,7 +65,9 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
     const [openDisbandDialog, setOpenDisbandDialog] = React.useState(false);
     const [openTransferOwnershipDialog, setOpenTransferOwnershipDialog] = React.useState(false);
     const [members, setMembers] = React.useState<Member[]>([]);
+    const [channels, setChannels] = React.useState<ChannelPartial[]>([]);
     const [selectedMemberId, setSelectedMemberId] = React.useState<string>('');
+    const [selectedChannelId, setSelectedChannelId] = React.useState<string>('');
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -82,6 +84,13 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
             enqueueSnackbar(error.message, { variant: 'error' });
         }
     };
+    const fetchChannels = async () => {
+        try {
+            setChannels(guild.channels);
+        } catch (error: any) {
+            enqueueSnackbar(error.message, { variant: 'error' });
+        }
+    }
 
     const fetchRoles = async () => {
         const result = await GetGuildRoles(guild._id);
@@ -109,7 +118,8 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
         }
     };
 
-    const handleClickOpenEditDialog = () => {
+    const handleClickOpenEditDialog = async () => {
+        await fetchChannels();
         setOpenEditDialog(true);
     }
     const handleCloseEditDialog = () => {
@@ -122,8 +132,8 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
         setOpenDisbandDialog(false);
     };
     const handleClickOpenInviteDialog = async () => {
-        setOpenInviteDialog(true);
         await fetchInvites();
+        setOpenInviteDialog(true);
     };
     const handleCloseInviteDialog = () => {
         setOpenInviteDialog(false);
@@ -148,14 +158,18 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
 
     const onUpdateGuild = async (data: any) => {
         try {
-            const updatedAttributes = {
-                name: data.name,
-                enableMemberVerification: data.enableMemberVerification,
-                enableJoinLog: data.enableJoinLog,
-                canGenerateInvite: data.canGenerateInvite
-            };
+            const formData = new FormData();
+            if (guildImage) {
+                console.log("hello");
+                formData.append('image', guildImage);
+            }
+            formData.append('name', data.name);
+            formData.append('logChannel', selectedChannelId);
+            formData.append('enableMemberVerification', data.enableMemberVerification);
+            formData.append('enableJoinLog', data.enableJoinLog);
+            formData.append('canGenerateInvite', data.canGenerateInvite);
 
-            const result = await UpdateGuild(guild._id, updatedAttributes);
+            const result = await UpdateGuild(guild._id, formData);
             updateGuild(result); // Update UI state
             enqueueSnackbar('Guild updated successfully!', { variant: 'success' });
             handleCloseEditDialog();
@@ -428,6 +442,19 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
                             {...registerUpdateGuild("name")}
                             defaultValue={guild.name}
                         />
+                        <FormControl fullWidth sx={{ mt: 2 }}>
+                            <InputLabel>Logs Channel</InputLabel>
+                            <Select
+                                value={selectedChannelId}
+                                onChange={(e) => setSelectedChannelId(e.target.value)}
+                            >
+                                {channels.map((channel) => (
+                                    <MenuItem key={channel._id} value={channel._id}>
+                                        {channel.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
 
                         <FormControlLabel
                             control={<Switch {...registerUpdateGuild("enableMemberVerification")} defaultChecked={guild.enableMemberVerification} />}
