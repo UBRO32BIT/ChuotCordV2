@@ -8,13 +8,27 @@ const ApiError = require("../../errors/ApiError");
 class GuildService {
     async GetGuilds() {
         try {
-            const guilds = await GuildModel.paginate();
+            const guilds = await GuildModel.find()
+                .populate({
+                    path: 'channels',
+                    select: '_id name type',
+                })
+                .populate({
+                    path: 'members.memberId',
+                    select: '_id username profilePicture onlinePresence',
+                })
+                .populate({
+                    path: 'members.roles',
+                    select: '_id name color permissionCodes displayType',
+                });
+    
             return guilds;
-        }
-        catch (error) {
+        } catch (error) {
+            console.error(error);
             return null;
         }
     }
+
     async GetGuildById(id) {
         try {
             const guild = await GuildModel.findById(id)
@@ -37,6 +51,7 @@ class GuildService {
             return null;
         }
     }
+
     async GetGuildRoles(guildId) {
         try {
             const roles = await GuildRoles.find({ guildId: guildId });
@@ -46,10 +61,47 @@ class GuildService {
             throw error;
         }
     }
+
+    async GetMemberRoles(guildId, memberId) {
+        try {
+            const guild = await GuildModel.findById(guildId);
+            if (!guild) {
+                throw new ApiError(ErrorCodes.GUILD_NOT_FOUND);
+            }
+            const member = guild.members.find(
+                (member) => member.memberId.toString() === memberId
+            )
+            if (!member) {
+                throw new ApiError(ErrorCodes.NOT_A_MEMBER);
+            }
+            return member.roles;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+
     async AddRole(guildId, data) {
         try {
             const role = new GuildRoles({ ...data, guildId: guildId });
             return role.save();
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async AssignRole(guildId, memberId, roleIds) {
+        try {
+            await GuildModel.findOneAndUpdate(
+                {
+                    _id: guildId,
+                    'members.memberId': memberId,
+                },
+                {
+                    $set: { 'members.$.roles': Array.isArray(roleIds) ? roleIds : [roleIds] },
+                }
+            );
+            return await this.GetGuildById(guildId);
         }
         catch (error) {
             throw error;
@@ -94,7 +146,6 @@ class GuildService {
                 guild.canGenerateInvite = updateData.canGenerateInvite;
             }
     
-            // Save the updated guild
             await guild.save();
             return await this.GetGuildById(guildId);
         } catch (error) {
@@ -186,8 +237,7 @@ class GuildService {
             if (isBlacklisted) {
                 throw new ApiError(ErrorCodes.MEMBER_ALREADY_BANNED);
             }
-    
-            // Add the member to the blacklist
+
             await GuildModel.findByIdAndUpdate(
                 guildId,
                 {

@@ -13,7 +13,7 @@ class MessageService {
             }
 
             const messages = await MessageModel.find(query)
-                .sort({ timestamp: -1 }) // Sort by newest first
+                .sort({ timestamp: -1 })
                 .limit(limit)
                 .populate([
                     {
@@ -32,23 +32,71 @@ class MessageService {
         }
     }
 
+    async SearchMessages(guildId, { 
+        channelId, 
+        content, 
+        attachmentType, 
+        sender, 
+        before, 
+        after, 
+        page = 1, 
+        limit = 20 
+    }) {
+        try {
+            const query = { guildId };
+    
+            if (channelId) query.channelId = channelId;
+            if (content) query.content = { $regex: content, $options: 'i' };
+            if (sender) query.sender = sender;
+            if (before || after) {
+                query.timestamp = {};
+                if (before) query.timestamp.$lte = before;
+                if (after) query.timestamp.$gte = after;
+            }
+            if (attachmentType) {
+                query.attachments = { 
+                    $exists: true, 
+                    $not: { $size: 0 } 
+                };
+            }
+    
+            const messages = await MessageModel.paginate(query, {
+                page,
+                limit,
+                sort: { timestamp: -1 },
+                populate: [
+                    { path: 'sender', select: '_id username profilePicture' },
+                    { 
+                        path: 'attachments',
+                        match: attachmentType ? { type: attachmentType } : {},
+                        select: '_id type url fullUrl'
+                    }
+                ]
+            });
+    
+            return messages;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
     async AddMessage(data) {
         try {
-            // Check if attachments are provided, and ensure it's an array
             const attachments = Array.isArray(data.attachments)
                 ? await Promise.all(data.attachments.map(async (attachment) => {
                     const newAttachment = new AttachmentModel(attachment);
                     await newAttachment.save();
                     return newAttachment._id;
                 }))
-                : []; // If no attachments, set it to an empty array
+                : [];
 
             const processedData = {
                 sender: data.userId,
                 content: data.message,
                 replyId: data.replyId,
                 type: data.type,
-                attachments, // Either populated with IDs or remains an empty array
+                attachments,
                 channelId: data.channelId,
             };
 

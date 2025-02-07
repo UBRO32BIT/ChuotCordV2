@@ -33,18 +33,26 @@ class GuildRoleController {
             errorHandler(error, req, res, next);
         }
     }
-    async GetRoleById(req, res, next) {
+
+    async AssignRole(req, res, next) {
         try {
-            res.status(StatusCodes.OK).json({message: "test"});
+            const { guildId } = req.params;
+            const { memberId, roleIds } = req.body;
+            const result = await guildService.AssignRole(guildId, memberId, roleIds);
+            res.status(StatusCodes.OK).json({
+                message: "Role assigned",
+                data: result,
+            });
         }
         catch (error) {
             console.log(error);
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: error.message});
+            errorHandler(error, req, res, next);
         }
     }
-    async CreateRole(req, res, next) {
+
+    async GetRoleById(req, res, next) {
         try {
-            res.status(StatusCodes.CREATED).json({message: "test"});
+            res.status(StatusCodes.OK).json({message: "test"});
         }
         catch (error) {
             console.log(error);

@@ -55,6 +55,17 @@ const GetGuildRoles = async (guildId: string) => {
     })
 }
 
+const CreateGuildRoles = async (guildId: string, data: any) => {
+    return axiosClient.post(`/guilds/${guildId}/roles`, data)
+    .then((res) => {
+        return res.data.data;
+    })
+    .catch((error) => {
+        console.error(error);
+        throw Error(error.response.data.message)
+    })
+}
+
 const UpdateGuild = async (guildId: string, data: any) => {
     return axiosClient.patch(`/guilds/${guildId}`, data, {
         headers: {
@@ -87,6 +98,7 @@ export {
     CreateGuild,
     DeleteGuild,
     GetGuildRoles,
+    CreateGuildRoles,
     UpdateGuild,
     TransferOwnership,
 }

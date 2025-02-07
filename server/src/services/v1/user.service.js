@@ -5,6 +5,7 @@ const redisClient = require("../../database/redis.database");
 const bcrypt = require('bcryptjs');
 const ApiError = require("../../errors/ApiError");
 const ErrorCodes = require("../../errors/errorCodes");
+const config = require("../../config/config");
 
 class UserService {
     async GetUsers() {
@@ -12,7 +13,7 @@ class UserService {
     }
     async GetUserById(id) {
         try {
-            const user = await UserModel.findById(id).lean();
+            const user = await UserModel.findById(id);
             return user;
         } catch (error) {
             return null;
@@ -56,8 +57,12 @@ class UserService {
                     },
                 },
             ]);
-    
-            return guilds;
+
+            const host = config.serverHost;
+            return guilds.map(guild => ({
+                ...guild,
+                image: guild.image ? `${host}${guild.image}` : null
+            }));
         } catch (error) {
             console.error(error);
             return null;

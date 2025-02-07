@@ -25,7 +25,7 @@ import Button from "@mui/material/Button";
 import React, { ChangeEvent } from "react";
 import * as yup from "yup";
 import { useSnackbar } from "notistack";
-import { DeleteGuild, GetGuildRoles, TransferOwnership, UpdateGuild } from "../../services/guild.service";
+import { CreateGuildRoles, DeleteGuild, GetGuildRoles, TransferOwnership, UpdateGuild } from "../../services/guild.service";
 import { removeGuild } from "../../redux/slices/guildsSlice";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Chip, Divider, FormControl, FormControlLabel, InputLabel, Select, Switch, TextField } from "@mui/material";
@@ -62,6 +62,13 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
     const [openEditDialog, setOpenEditDialog] = React.useState(false);
     const [openInviteDialog, setOpenInviteDialog] = React.useState(false);
     const [openManageRoleDialog, setOpenManageRoleDialog] = React.useState(false);
+    const [openCreateRoleDialog, setOpenCreateRoleDialog] = React.useState(false);
+    const [newRole, setNewRole] = React.useState({
+        name: "",
+        color: "#000000",
+        permissionCodes: [],
+        displayType: "none",
+    });
     const [openDisbandDialog, setOpenDisbandDialog] = React.useState(false);
     const [openTransferOwnershipDialog, setOpenTransferOwnershipDialog] = React.useState(false);
     const [members, setMembers] = React.useState<Member[]>([]);
@@ -190,6 +197,15 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
             enqueueSnackbar(`${error.message}`, { variant: "error" });
         }
     }
+    const handleCreateRole = async () => {
+        try {
+            await CreateGuildRoles(guild._id, newRole);
+            fetchRoles(); // Refresh roles list
+            setOpenCreateRoleDialog(false);
+        } catch (error) {
+            console.error(error);
+        }
+    };
     const disbandGuild = async () => {
         try {
             const result = await DeleteGuild(guild._id);
@@ -358,50 +374,47 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
             </DialogActions>
         </Dialog>
         <Dialog open={openManageRoleDialog} keepMounted onClose={() => setOpenManageRoleDialog(false)}>
-            <DialogTitle>Manage roles</DialogTitle>
-            <DialogContent>
-                <Box>
-                    <Box sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                    }}>
-                        {roles && roles.map((role) => (
-                            <Box
-                                key={role._id}
-                                sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 1, // Space between the circle and the text
-                                }}
-                            >
-                                {/* Circle representing the role color */}
-                                <Box
-                                    sx={{
-                                        width: 16,
-                                        height: 16,
-                                        borderRadius: "50%",
-                                        backgroundColor: role.color,
-                                        flexShrink: 0, // Prevent the circle from shrinking
-                                    }}
-                                />
-                                {/* Role name */}
-                                <Typography
-                                    sx={{
-                                        fontWeight: "bold",
-                                        color: "#000000", // Customize text color if needed
-                                    }}
-                                >
-                                    {role.name}
-                                </Typography>
+                <DialogTitle>Manage Roles</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: "flex", flexDirection: "column" }}>
+                        {roles && roles.map((role: Role) => (
+                            <Box key={role._id} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                <Box sx={{ width: 16, height: 16, borderRadius: "50%", backgroundColor: role.color, flexShrink: 0 }} />
+                                <Typography sx={{ fontWeight: "bold", color: "#000000" }}>{role.name}</Typography>
                             </Box>
                         ))}
                     </Box>
-                </Box>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={() => setOpenManageRoleDialog(false)}>Done</Button>
-            </DialogActions>
-        </Dialog>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenCreateRoleDialog(true)}>Create Role</Button>
+                    <Button onClick={() => setOpenManageRoleDialog(false)}>Done</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Create Role Modal */}
+            <Dialog open={openCreateRoleDialog} onClose={() => setOpenCreateRoleDialog(false)}>
+                <DialogTitle>Create New Role</DialogTitle>
+                <DialogContent>
+                    <TextField label="Role Name" fullWidth margin="dense" value={newRole.name} onChange={(e) => setNewRole({ ...newRole, name: e.target.value })} />
+                    <TextField type="color" fullWidth margin="dense" value={newRole.color} onChange={(e) => setNewRole({ ...newRole, color: e.target.value })} />
+                    <Select
+                        fullWidth
+                        value={newRole.displayType}
+                        onChange={(e) => setNewRole({ ...newRole, displayType: e.target.value })}
+                        margin="dense"
+                    >
+                        <MenuItem value="none">None</MenuItem>
+                        <MenuItem value="only_icon">Only Icon</MenuItem>
+                        <MenuItem value="standard">Standard</MenuItem>
+                        <MenuItem value="combined">Combined</MenuItem>
+                        <MenuItem value="seperate">Separate</MenuItem>
+                    </Select>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenCreateRoleDialog(false)}>Cancel</Button>
+                    <Button onClick={handleCreateRole} color="primary">Create</Button>
+                </DialogActions>
+            </Dialog>
 
         <Dialog
             open={openEditDialog}

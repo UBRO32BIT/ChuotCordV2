@@ -7,5 +7,6 @@ const router = express.Router({ mergeParams: true });
 
 router.get('/', CheckAuth, messageController.GetMessagesByChannelId);
 router.post("/", CheckAuth, uploadAttachment.array("files"), messageController.AddMessage);
+router.get('/search', CheckAuth, messageController.SearchMessages);
 
 module.exports = router;

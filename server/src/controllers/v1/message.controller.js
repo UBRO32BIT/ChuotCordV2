@@ -1,6 +1,7 @@
 const messageService  = require('../../services/v1/message.service');
 const { StatusCodes } = require('http-status-codes');
 const { getFileType } = require('../../utils/file.util');
+const errorHandler = require('./error.controller');
 
 class MessageController {
     async GetMessagesByChannelId(req, res, next) {
@@ -18,7 +19,40 @@ class MessageController {
         }
         catch (error) {
             console.log(error);
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: error.message});
+            errorHandler(error, req, res, next);
+        }
+    }
+
+    async SearchMessages(req, res, next) {
+        try {
+            const {id: guildId} = req.params;
+            const {
+                channelId,
+                content,
+                attachmentType,
+                sender,
+                before,
+                after,
+                page = 1,
+                limit = 20
+            } = req.query;
+    
+            const filters = {
+                channelId,
+                content,
+                attachmentType,
+                sender,
+                before: before ? new Date(before) : null,
+                after: after ? new Date(after) : null,
+                page: parseInt(page, 10),
+                limit: parseInt(limit, 10)
+            };
+    
+            const messages = await messageService.SearchMessages(guildId, filters);
+            return res.status(StatusCodes.OK).json(messages);
+        } catch (error) {
+            console.error('Error searching messages:', error);
+            errorHandler(error, req, res, next);
         }
     }
 
@@ -47,7 +81,7 @@ class MessageController {
         }
         catch (error) {
             console.log(error);
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: error.message});
+            errorHandler(error, req, res, next);
         }
     }
 }
