@@ -5,7 +5,6 @@ const redisClient = require("../../database/redis.database");
 const bcrypt = require('bcryptjs');
 const ApiError = require("../../errors/ApiError");
 const ErrorCodes = require("../../errors/errorCodes");
-const config = require("../../config/config");
 
 class UserService {
     async GetUsers() {
@@ -45,23 +44,25 @@ class UserService {
         try {
             const user = await UserModel.findById(userId).select('guilds -_id');
             if (!user) return null;
-    
-            const guilds = await GuildModel.aggregate([
-                { $match: { _id: { $in: user.guilds } } },
-                {
-                    $project: {
-                        _id: 1,
-                        name: 1,
-                        image: 1,
-                        memberCounts: { $size: "$members" }, // Count the members array
-                    },
-                },
-            ]);
 
-            const host = config.serverHost;
+            const guilds = await GuildModel.find({ _id: { $in: user.guilds } })
+                .populate({
+                    path: 'channels',
+                    select: '_id name type',
+                })
+                .populate({
+                    path: 'members.memberId',
+                    select: '_id username profilePicture onlinePresence',
+                })
+                .populate({
+                    path: 'members.roles',
+                    select: '_id name color permissionCodes displayType',
+                })
+                .select('_id name image members');
+    
             return guilds.map(guild => ({
-                ...guild,
-                image: guild.image ? `${host}${guild.image}` : null
+                ...guild.toObject(),
+                memberCounts: guild.members.length,
             }));
         } catch (error) {
             console.error(error);
