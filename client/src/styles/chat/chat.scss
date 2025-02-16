@@ -1,19 +1,27 @@
 :root {
-
     --input-color: #3f4246;
     --input-border: #CDD9ED;
     --input-background: #fff;
     --input-placeholder: #CBD1DC;
-
     --input-border-focus: #275EFE;
 
     --group-color: var(--input-color);
     --group-border: var(--input-border);
     --group-background: #EEF4FF;
-
     --group-color-focus: #fff;
     --group-border-focus: var(--input-border-focus);
     --group-background-focus: #678EFE;
+    
+    --color-background: #fafafa;
+    --color-foreground: #1f2023;
+    --hover-background: rgba(0, 0, 0, 0.1);
+}
+
+body.dark {
+    --color-background: #0c0414;
+    --color-foreground: #EFEFEF;
+    --input-background: #0f0d54;
+    --hover-background: rgba(255, 255, 255, 0.1);
 }
 
 .guild-addition-btn {
@@ -22,22 +30,18 @@
 
 .message-input-field {
     flex: 1;
-    /* Allow the textarea to grow and take up the remaining space */
     padding: 8px 16px;
     margin: 3px 0;
     line-height: 1.5;
-    /* Adjust line height for multi-line text */
     font-size: 14px;
     font-weight: 500;
     font-family: inherit;
     border-radius: 6px;
     resize: none;
-    /* Prevent manual resizing */
     overflow: hidden;
-    /* Prevent scrollbars unless content exceeds max height */
     border: 1px solid var(--input-border);
     background: var(--input-background);
-    color: var(--input-foreground);
+    color: var(--input-color);
     transition: border 0.3s ease;
 
     &::placeholder {
@@ -81,18 +85,15 @@
     left: 0;
     top: 0;
     opacity: 0;
-    /* Keep the file input invisible */
     height: 100%;
     width: 100%;
     cursor: pointer;
 }
 
 .message-form-container {
-    &.dragging {
-        .message-input-field {
-            border-color: var(--input-border-focus);
-            background-color: rgba(0, 0, 0, 0.1);
-        }
+    &.dragging .message-input-field {
+        border-color: var(--input-border-focus);
+        background-color: rgba(0, 0, 0, 0.1);
     }
 
     .drag-overlay {
@@ -113,22 +114,10 @@
     }
 }
 
-body {
-    --color-background: #fafafa;
-    --color-foreground: #1f2023;
-}
-
-body.dark {
-    --color-background: #0c0414;
-    --color-foreground: #EFEFEF;
-    --input-background: #0f0d54;
-}
-
 .chat-container {
     background-color: var(--color-background);
     color: var(--color-foreground);
 
-    // Mobile styles
     @media (max-width: 600px) {
         .message-input-field {
             font-size: 16px;
@@ -182,7 +171,20 @@ body.dark {
     }
 }
 
-// Adjust scrollbar for mobile
+.guild-item {
+    cursor: pointer;
+    &:hover {
+        background-color: var(--hover-background);
+    }
+}
+
+.channel-item {
+    cursor: pointer;
+    &:hover {
+        background-color: var(--hover-background);
+    }
+}
+
 @media (max-width: 600px) {
     *::-webkit-scrollbar {
         width: 6px;
@@ -195,23 +197,13 @@ body.dark {
     background-color: #DFE9EB;
 }
 
-*::-webkit-scrollbar-track:hover {
-    background-color: #B8C0C2;
-}
-
-*::-webkit-scrollbar-track:active {
-    background-color: #B8C0C2;
-}
-
 *::-webkit-scrollbar-thumb {
     border-radius: 5px;
     background-color: #78989B;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-    background-color: #6A8589;
-}
-
-*::-webkit-scrollbar-thumb:active {
-    background-color: #506568;
+    &:hover {
+        background-color: #6A8589;
+    }
+    &:active {
+        background-color: #506568;
+    }
 }

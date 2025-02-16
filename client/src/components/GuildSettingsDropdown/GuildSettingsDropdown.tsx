@@ -283,7 +283,8 @@ export default function GuildSettingsDropdown({ guild }: GuildInfoProps) {
                     {guildActions.map((action, index) => (
                         (!action.ownerOnly || guild.owner === user._id) && (
                             <MenuItem key={index} onClick={action.onClick}>
-                                <Box sx={{
+                                <Box
+                                sx={{
                                     display: "flex",
                                     alignItems: "center",
                                     gap: "8px",

@@ -39,10 +39,7 @@ export const GuildList = () => {
                 guilds.map((guild: any, index: number) => (
                     <Box 
                     key={index}
-                    sx={{
-                        cursor: "pointer",
-                        '&:hover': { backgroundColor: "rgba(0, 0, 0, 0.1)" }
-                    }}>
+                    className="guild-item">
                         <Link to={`${guild._id}`} style={{ textDecoration: 'none', color: 'var(--color-foreground)' }}>
                             <GuildMiniCard {...guild} />
                         </Link>

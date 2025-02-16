@@ -14,6 +14,8 @@ import { Guild } from "../../shared/guild.interface";
 import { addGuild, createGuild } from "../../redux/slices/guildsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../store";
+import JoinGuildModal from "./JoinGuildModal/JoinGuildModal";
+import { useNavigate } from "react-router-dom";
 
 const createGuildSchema = yup.object().shape({
     name: yup.string()
@@ -23,8 +25,10 @@ const createGuildSchema = yup.object().shape({
 export default function GuildAddition() {
     const guilds = useSelector((state: any) => state.guilds.guilds);
     const [openCreateGuildModal, setOpenCreateGuildModal] = React.useState(false);
+    const [joinModalOpen, setJoinModalOpen] = React.useState(false);
     const [uploading, setUploading] = React.useState(false);
     const { enqueueSnackbar } = useSnackbar();
+    const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
     const {
         register: registerCreateGuild,
@@ -101,10 +105,18 @@ export default function GuildAddition() {
                 fullWidth
                 sx={{
                     gap: 1,
-                }}>
+                }}
+                onClick={() => setJoinModalOpen(true)}>
                 <GroupsIcon />
                 <Typography variant="button">Join Existing Guild</Typography>
             </Button>
+            <JoinGuildModal
+                open={joinModalOpen}
+                onClose={() => setJoinModalOpen(false)}
+                onJoinSuccess={() => {
+                    navigate("/chat");
+                }}
+            />
             <Modal
                 open={openCreateGuildModal}
                 onClose={handleCloseCreateGuildModal}
@@ -115,9 +127,6 @@ export default function GuildAddition() {
                     <Typography id="modal-modal-title" variant="h6" component="h2">
                         New Guild
                     </Typography>
-                    {/* <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                        Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-                    </Typography> */}
                     <form onSubmit={handleCreateGuildSubmit(onCreateGuildSubmit)}>
                         <TextField
                             margin="normal"

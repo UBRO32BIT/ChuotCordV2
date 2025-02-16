@@ -109,14 +109,13 @@ export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
             channel.type === "voice" ? (
                 // Render voice channel as a non-link and call a function on click
                 <Box
+                    className="channel-item"
                     key={channel._id}
                     sx={{
                         display: "flex",
                         alignItems: "center",
                         gap: 1,
                         p: 1,
-                        cursor: "pointer",
-                        '&:hover': { backgroundColor: "rgba(0, 0, 0, 0.1)" }
                     }}
                     onClick={() => handleVoiceChannelClick(channel._id)}
                 >
@@ -133,13 +132,13 @@ export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
                         color: "var(--color-foreground)",
                     }}
                 >
-                    <Box sx={{
+                    <Box
+                    className="channel-item" 
+                    sx={{
                         display: "flex",
                         alignItems: "center",
                         gap: 1,
                         p: 1,
-                        cursor: "pointer",
-                        '&:hover': { backgroundColor: "rgba(0, 0, 0, 0.1)" }
                     }}>
                         <TagIcon />
                         <Typography>{channel.name}</Typography>

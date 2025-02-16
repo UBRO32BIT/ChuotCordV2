@@ -1,6 +1,8 @@
 import React from 'react';
 import { Box, Avatar, Typography } from '@mui/material';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { Attachment } from '../../shared/attachment.interface';
 import { Message, MessageType } from '../../shared/message.interface';
 import { formatDateTime } from '../../utils/date';
@@ -116,6 +118,7 @@ export default function MessageComponent(message: Message) {
                             alignItems: 'center',
                         }}
                     >
+                        <LoginIcon color='info' />
                         <Typography>{message.sender.username} joined the guild.</Typography>
                         <Typography variant="body2" color="gray">
                             {formatDateTime(message.timestamp)}
@@ -124,11 +127,38 @@ export default function MessageComponent(message: Message) {
                 </>
 
             case MessageType.LEAVE:
-                return <Typography>{message.sender.username} left the guild.</Typography>;
+                return <>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            gap: 1,
+                            alignItems: 'center',
+                        }}
+                    >
+                        <LogoutIcon color='error' />
+                        <Typography>{message.sender.username} left the guild.</Typography>
+                        <Typography variant="body2" color="gray">
+                            {formatDateTime(message.timestamp)}
+                        </Typography>
+                    </Box>
+                </>
 
             case MessageType.OWNERSHIP:
-                return <Typography>{message.sender.username} is now the owner.</Typography>;
-
+                return <>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            gap: 1,
+                            alignItems: 'center',
+                        }}
+                    >
+                        <LogoutIcon color='warning' />
+                        <Typography>{message.sender.username} is now the owner.</Typography>
+                        <Typography variant="body2" color="gray">
+                            {formatDateTime(message.timestamp)}
+                        </Typography>
+                    </Box>
+                </>
             case MessageType.KICK:
                 return <Typography>{message.sender.username} was kicked from the guild.</Typography>;
 
@@ -176,7 +206,7 @@ export default function MessageComponent(message: Message) {
             sx={{
                 display: 'flex',
                 gap: 1,
-                py: 0.5,
+                py: 0.8,
             }}
         >
             {renderMessageContent()}

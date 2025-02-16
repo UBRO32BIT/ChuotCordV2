@@ -39,7 +39,7 @@ export default function Chat() {
     const fetchSocketStatus = () => {
         if (!socket.connected) {
             console.log("disconnected");
-            enqueueSnackbar(`You are disconnected`, {
+            enqueueSnackbar(`Socket disconnected`, {
                 variant: "error",
                 preventDuplicate: true,
                 action: (snackbarId) => (

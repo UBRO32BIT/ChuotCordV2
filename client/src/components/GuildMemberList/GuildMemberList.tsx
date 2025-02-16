@@ -12,26 +12,26 @@ interface GuildInfoProps {
     updateGuild: (updatedAttributes: Partial<Guild>) => void;
 }
 
-export default function GuildMemberList({guild, updateGuild}: GuildInfoProps) {
+export default function GuildMemberList({ guild, updateGuild }: GuildInfoProps) {
     const [members, setMembers] = React.useState<Member[]>();
     const [onlineMembers, setOnlineMembers] = React.useState<Member[]>();
     const [offlineMembers, setOfflineMembers] = React.useState<Member[]>();
     const [isLoadedMembers, setIsLoadedMembers] = React.useState<boolean>(false);
     const [isLoadedOnlineMembers, setIsLoadedOnlineMembers] = React.useState<boolean>(false);
     const socket = useSocket();
-    
+
     React.useEffect(() => {
-        if (guild.members && !isLoadedMembers) {
-            setOnlineMembers([]);
-            setOfflineMembers(guild.members);
-            setIsLoadedMembers(true);
-        }
-    }, [guild]);
-    
+        setOnlineMembers([]);
+        setOfflineMembers(guild.members);
+        setIsLoadedMembers(true);
+        setIsLoadedOnlineMembers(false);
+    }, [guild._id]);
+
     React.useEffect(() => {
         if (socket && guild.members && isLoadedMembers && !isLoadedOnlineMembers) {
+            console.log("requesting online members");
             socket.emit("request_online_members", { guildId: guild._id });
-    
+
             return () => {
                 socket.off("request_online_members");
             };
@@ -63,55 +63,55 @@ export default function GuildMemberList({guild, updateGuild}: GuildInfoProps) {
             setIsLoadedOnlineMembers(false);
         });
     }, [socket, guild.members, onlineMembers, offlineMembers]);
-    
+
     return <Box>
-        <Typography variant="button" fontWeight="bold" sx={{mx: 1}}>Online - {onlineMembers && onlineMembers.length}</Typography>
+        <Typography variant="button" fontWeight="bold" sx={{ mx: 1 }}>Online - {onlineMembers && onlineMembers.length}</Typography>
         {onlineMembers && onlineMembers.map && onlineMembers.map((member) => (
             <Box
-            key={member._id} 
-            sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                p: 1
-            }}>
+                key={member._id}
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    p: 1
+                }}>
                 <Box sx={{ position: "relative", width: 36, height: 36 }}>
                     <Avatar
                         src={member.memberId.profilePicture}
                         alt={member.memberId.username}
                         sx={{ width: 36, height: 36 }}
                     />
-                    {member.memberId.onlinePresence && <OnlinePresence onlinePresence={member.memberId.onlinePresence}/>}
+                    {member.memberId.onlinePresence && <OnlinePresence onlinePresence={member.memberId.onlinePresence} />}
                 </Box>
                 <Typography>{member.memberId.username}</Typography>
                 {member.roles.map((role) => (
                     <Chip
-                    key={role._id}
-                    label={role.name}
-                    size="small"
-                    style={{
-                        backgroundColor: role.color,
-                        color: "#FFFFFF", // Ensures text contrast
-                        fontWeight: "bold",
-                    }}
+                        key={role._id}
+                        label={role.name}
+                        size="small"
+                        style={{
+                            backgroundColor: role.color,
+                            color: "#FFFFFF", // Ensures text contrast
+                            fontWeight: "bold",
+                        }}
                     />
                 ))}
             </Box>
         ))}
-        <Typography variant="button" fontWeight="bold" sx={{mx: 1}}>Offline - {offlineMembers && offlineMembers.length}</Typography>
+        <Typography variant="button" fontWeight="bold" sx={{ mx: 1 }}>Offline - {offlineMembers && offlineMembers.length}</Typography>
         {offlineMembers && offlineMembers.map && offlineMembers.map((member) => (
             <Box
-            key={member._id} 
-            sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                p: 1
-            }}>
-                <Avatar 
-                    src={member.memberId.profilePicture} 
+                key={member._id}
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    p: 1
+                }}>
+                <Avatar
+                    src={member.memberId.profilePicture}
                     alt={member.memberId.username}
-                    sx={{ width: 36, height: 36}}
+                    sx={{ width: 36, height: 36 }}
                 />
                 <Typography>{member.memberId.username}</Typography>
             </Box>

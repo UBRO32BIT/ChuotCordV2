@@ -1,6 +1,5 @@
 import React from "react";
-import { Avatar, Box, Button, Checkbox, FormControl, FormControlLabel, FormLabel, Grid, Link, Paper, TextField, Typography } from "@mui/material";
-import { useSnackbar } from "notistack";
+import { Link } from "@mui/material";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -10,10 +9,12 @@ import { User } from "../../shared/user.interface";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Navigate } from "react-router-dom";
 import { setAccessToken } from "../../utils/localStorage";
-import useAuth from "../../hooks/useAuth";
+import PersonIcon from '@mui/icons-material/Person';
+import LockIcon from '@mui/icons-material/Lock';
+import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import { loadUser } from "../../redux/slices/userSlice";
 
-const loginSchema = yup.object().shape({
+const registerSchema = yup.object().shape({
     username: yup
         .string()
         .matches(/^[a-zA-Z0-9]+$/, "Username can only contain alphanumeric characters!")
@@ -26,20 +27,19 @@ const loginSchema = yup.object().shape({
 });
 
 export default function Register() {
-    const { setAuth } = useAuth();
+    const [errorResponse, setErrorResponse] = React.useState("");
+    const [uploading, setUploading] = React.useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const isAuthenticated = useSelector((state: any) => state.user.isAuthenticated);
-    const { enqueueSnackbar } = useSnackbar();
-    const [errorResponse, setErrorResponse] = React.useState<string>("");
-    const [uploading, setUploading] = React.useState(false);
+
     const {
-        register: registerLogin,
-        handleSubmit: handleRegisterSubmit,
+        register: registerForm,
+        handleSubmit,
         setValue,
-        formState: { errors: registerErrors },
+        formState: { errors }
     } = useForm({
-        resolver: yupResolver(loginSchema),
+        resolver: yupResolver(registerSchema)
     });
 
     const onRegisterSubmit = async (event: any) => {
@@ -77,138 +77,217 @@ export default function Register() {
     };
 
     if (isAuthenticated) {
-        // Redirect to a different page if the user is already authenticated
         return <Navigate to="/" />;
     }
 
     return (
-        <Grid
-            container
-            sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "flex-start",
-                backgroundImage:
-                    "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(https://upload.wikimedia.org/wikipedia/commons/c/c1/Rat_agouti.jpg)",
-                backgroundSize: "cover",
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                minHeight: "100vh",
-                overflow: "auto",
-                padding: 2,
-            }}
-        >
-            <Paper
-                elevation={10}
-                style={{
-                    padding: 20,
-                    width: 350,
-                    margin: "20px auto",
-                    maxHeight: "90vh",
-                    overflowY: "auto",
-                }}
-            >
-                <Grid alignItems="center" justifyContent="center">
-                    <Typography
-                        component="h1"
-                        variant="h4"
-                        sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
-                    >
-                        Sign up
-                    </Typography>
-                    <Typography variant="body2" color={"red"}>
+        <div style={{
+            minHeight: '100vh',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '48px 24px',
+            backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(https://upload.wikimedia.org/wikipedia/commons/c/c1/Rat_agouti.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            color: '#fff',
+            fontFamily: "'Poppins', sans-serif"
+        }}>
+            <div style={{
+                maxWidth: '440px',
+                width: '100%',
+                backgroundColor: 'rgba(42, 43, 56, 0.9)',
+                padding: '32px',
+                borderRadius: '12px',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+            }}>
+                <h4 style={{
+                    fontSize: '1.5rem',
+                    fontWeight: '600',
+                    textAlign: 'center',
+                    marginBottom: '2rem'
+                }}>Sign Up</h4>
+
+                {errorResponse && (
+                    <p style={{ color: '#ff4444', fontSize: '0.875rem', textAlign: 'center', marginBottom: '1rem' }}>
                         {errorResponse}
-                    </Typography>
-                </Grid>
-                <Box
-                    component="form"
-                    onSubmit={handleRegisterSubmit(onRegisterSubmit)}
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        textAlign: "start",
-                        width: "100%",
-                        gap: 2,
-                    }}
-                >
-                    <FormControl>
-                        <FormLabel htmlFor="username">Username</FormLabel>
-                        <TextField
-                            fullWidth
-                            id="username"
-                            autoComplete="email"
-                            autoFocus
-                            required
-                            variant="outlined"
-                            error={!!registerErrors.username}
-                            helperText={registerErrors.username?.message}
-                            color={registerErrors.username ? "error" : "primary"}
-                            {...registerLogin("username")}
-                        />
-                    </FormControl>
-                    <FormControl>
-                        <FormLabel htmlFor="email">Email</FormLabel>
-                        <TextField
-                            fullWidth
-                            id="email"
-                            type="email"
-                            autoFocus
-                            variant="outlined"
-                            error={!!registerErrors.email}
-                            helperText={registerErrors.email?.message}
-                            color={registerErrors.email ? "error" : "primary"}
-                            {...registerLogin("email")}
-                        />
-                    </FormControl>
-                    <FormControl>
-                        <FormLabel htmlFor="password">Password</FormLabel>
-                        <TextField
-                            fullWidth
-                            type="password"
-                            id="password"
-                            autoFocus
-                            required
-                            variant="outlined"
-                            autoComplete="current-password"
-                            error={!!registerErrors.password}
-                            helperText={registerErrors.password?.message}
-                            {...registerLogin("password")}
-                        />
-                    </FormControl>
-                    <FormControl>
-                        <FormLabel htmlFor="repeatPassword">Repeat password</FormLabel>
-                        <TextField
-                            fullWidth
-                            type="password"
-                            id="repeatPassword"
-                            autoFocus
-                            required
-                            variant="outlined"
-                            autoComplete="current-password"
-                            error={!!registerErrors.repeatPassword}
-                            helperText={registerErrors.repeatPassword?.message}
-                            {...registerLogin("repeatPassword")}
-                        />
-                    </FormControl>
-                    <Button
+                    </p>
+                )}
+
+                <form onSubmit={handleSubmit(onRegisterSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div>
+                        <div style={{ position: 'relative', display: "flex", alignItems: "center" }}>
+                            <input
+                                {...registerForm("username")}
+                                type="text"
+                                placeholder="Username"
+                                style={{
+                                    width: '100%',
+                                    padding: '13px 20px 13px 48px',
+                                    backgroundColor: '#1f2029',
+                                    border: errors.username ? '1px solid #ff4444' : 'none',
+                                    borderRadius: '4px',
+                                    color: '#fff',
+                                    fontSize: '14px',
+                                    outline: 'none',
+                                    boxShadow: '0 4px 8px rgba(21,21,21,0.2)'
+                                }}
+                            />
+                            <span style={{
+                                position: 'absolute',
+                                left: '18px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                color: '#ffeba7'
+                            }}><PersonIcon/></span>
+                        </div>
+                        {errors.username && (
+                            <p style={{ color: '#ff4444', fontSize: '0.75rem', marginTop: '0.25rem', marginBottom: '0' }}>
+                                {errors.username.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <div style={{ position: 'relative', display: "flex", alignItems: "center" }}>
+                            <input
+                                {...registerForm("email")}
+                                type="email"
+                                placeholder="Email"
+                                style={{
+                                    width: '100%',
+                                    padding: '13px 20px 13px 48px',
+                                    backgroundColor: '#1f2029',
+                                    border: errors.email ? '1px solid #ff4444' : 'none',
+                                    borderRadius: '4px',
+                                    color: '#fff',
+                                    fontSize: '14px',
+                                    outline: 'none',
+                                    boxShadow: '0 4px 8px rgba(21,21,21,0.2)'
+                                }}
+                            />
+                            <span style={{
+                                position: 'absolute',
+                                left: '18px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                color: '#ffeba7'
+                            }}><AlternateEmailIcon/></span>
+                        </div>
+                        {errors.email && (
+                                <p style={{ color: '#ff4444', fontSize: '0.75rem', marginTop: '0.25rem', marginBottom: '0' }}>
+                                    {errors.email.message}
+                                </p>
+                            )}
+                    </div>
+
+                    <div>
+                        <div style={{ position: 'relative', display: "flex", alignItems: "center" }}>
+                            <input
+                                {...registerForm("password")}
+                                type="password"
+                                placeholder="Password"
+                                style={{
+                                    width: '100%',
+                                    padding: '13px 20px 13px 48px',
+                                    backgroundColor: '#1f2029',
+                                    border: errors.password ? '1px solid #ff4444' : 'none',
+                                    borderRadius: '4px',
+                                    color: '#fff',
+                                    fontSize: '14px',
+                                    outline: 'none',
+                                    boxShadow: '0 4px 8px rgba(21,21,21,0.2)'
+                                }}
+                            />
+                            <span style={{
+                                position: 'absolute',
+                                left: '18px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                color: '#ffeba7'
+                            }}><LockIcon/></span>
+                        </div>
+                        {errors.password && (
+                            <p style={{ color: '#ff4444', fontSize: '0.75rem', marginTop: '0.25rem', marginBottom: '0' }}>
+                                {errors.password.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <div style={{ position: 'relative', display: "flex", alignItems: "center" }}>
+                            <input
+                                {...registerForm("repeatPassword")}
+                                type="password"
+                                placeholder="Repeat Password"
+                                style={{
+                                    width: '100%',
+                                    padding: '13px 20px 13px 48px',
+                                    backgroundColor: '#1f2029',
+                                    border: errors.repeatPassword ? '1px solid #ff4444' : 'none',
+                                    borderRadius: '4px',
+                                    color: '#fff',
+                                    fontSize: '14px',
+                                    outline: 'none',
+                                    boxShadow: '0 4px 8px rgba(21,21,21,0.2)'
+                                }}
+                            />
+                            <span style={{
+                                position: 'absolute',
+                                left: '18px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                color: '#ffeba7'
+                            }}><LockIcon/></span>
+                        </div>
+                        {errors.repeatPassword && (
+                            <p style={{ color: '#ff4444', fontSize: '0.75rem', marginTop: '0.25rem', marginBottom: '0' }}>
+                                {errors.repeatPassword.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <button
                         type="submit"
-                        color="primary"
-                        variant="contained"
-                        style={{ margin: "8px 0" }}
-                        fullWidth
+                        disabled={uploading}
+                        style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            backgroundColor: '#ffeba7',
+                            color: '#102770',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontWeight: '600',
+                            fontSize: '13px',
+                            cursor: uploading ? 'not-allowed' : 'pointer',
+                            textTransform: 'uppercase',
+                            letterSpacing: '1px',
+                            transition: 'all 0.3s ease',
+                            opacity: uploading ? 0.7 : 1
+                        }}
                     >
-                        Create an account
-                    </Button>
-                </Box>
-                <Typography>
-                    <Link href="#" variant="body2">
-                        Forgot password?
-                    </Link>
-                </Typography>
-                <Typography variant="body2">Already have an account?</Typography>
-                <Link href="/login" variant="body2">
-                    Login now
-                </Link>
-            </Paper>
-        </Grid>
+                        {uploading ? 'Signing up...' : 'Sign Up'}
+                    </button>
+
+                    <div style={{
+                        textAlign: 'center',
+                        marginTop: '1rem'
+                    }}>
+                        <span style={{ color: '#c4c3ca', fontSize: '0.875rem' }}>Already have an account? </span>
+                        <Link
+                            href="/login"
+                            style={{
+                                color: '#ffeba7',
+                                textDecoration: 'none',
+                                fontSize: '0.875rem'
+                            }}
+                        >
+                            Login here
+                        </Link>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }
