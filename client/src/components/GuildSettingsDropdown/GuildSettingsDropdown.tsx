@@ -25,17 +25,17 @@ import Button from "@mui/material/Button";
 import React, { ChangeEvent } from "react";
 import * as yup from "yup";
 import { useSnackbar } from "notistack";
-import { CreateGuildRoles, DeleteGuild, GetGuildRoles, TransferOwnership, UpdateGuild } from "../../services/guild.service";
-import { removeGuild } from "../../redux/slices/guildsSlice";
+import { CreateGuildRoles, GetGuildRoles } from "../../services/guild.service";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Chip, Divider, FormControl, FormControlLabel, InputLabel, Select, Switch, TextField } from "@mui/material";
 import { GenerateInvite, GetInvitesByGuildId } from "../../services/invite.service";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { AppDispatch, RootState } from "../../store";
+import { deleteGuild, transferOwnership, updateGuild } from "../../redux/slices/guildsSlice";
 
 interface GuildInfoProps {
     guild: Guild;
-    updateGuild: (updatedAttributes: Partial<Guild>) => void;
 }
 
 const updateGuildSchema = yup.object().shape({
@@ -45,8 +45,10 @@ const updateGuildSchema = yup.object().shape({
     canGenerateInvite: yup.boolean()
 });
 
-export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoProps) {
+export default function GuildSettingsDropdown({ guild }: GuildInfoProps) {
     const user = useSelector((state: any) => state.user.user);
+    const { guilds, loading, error } = useSelector((state: RootState) => state.guilds);
+    const dispatch = useDispatch<AppDispatch>();
     const {
         register: registerUpdateGuild,
         handleSubmit: handleUpdateGuild,
@@ -77,7 +79,6 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
     const [selectedChannelId, setSelectedChannelId] = React.useState<string>('');
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const dispatch = useDispatch();
 
     const fetchInvites = async () => {
         const result = await GetInvitesByGuildId(guild._id);
@@ -116,7 +117,10 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
             return;
         }
         try {
-            await TransferOwnership(guild._id, selectedMemberId);
+            dispatch(transferOwnership({
+                guildId: guild._id, 
+                newOwnerId: selectedMemberId
+            }));
             enqueueSnackbar('Ownership transferred successfully!', { variant: 'success' });
             handleCloseTransferOwnershipDialog();
         } catch (error: any) {
@@ -176,8 +180,10 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
             formData.append('enableJoinLog', data.enableJoinLog);
             formData.append('canGenerateInvite', data.canGenerateInvite);
 
-            const result = await UpdateGuild(guild._id, formData);
-            updateGuild(result); // Update UI state
+            dispatch(updateGuild({
+                guildId: guild._id,
+                data: formData
+            }))
             enqueueSnackbar('Guild updated successfully!', { variant: 'success' });
             handleCloseEditDialog();
         } catch (error: any) {
@@ -208,8 +214,7 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
     };
     const disbandGuild = async () => {
         try {
-            const result = await DeleteGuild(guild._id);
-            dispatch(removeGuild(guild._id));
+            dispatch(deleteGuild(guild._id));
             handleCloseDisbandDialog();
             enqueueSnackbar(`Guild deleted successfully.`, { variant: "success" });
             navigate("/chat");
@@ -231,88 +236,83 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
             setGuildImageSrc(guild.image);
         }
     }, [guild, guildImage])
-    React.useEffect(() => {
-        console.log(guild?.name);
-    }, [guild])
+
+    const guildActions = [
+        {
+            label: "Edit guild profile",
+            icon: <EditIcon />,
+            onClick: handleClickOpenEditDialog,
+            ownerOnly: true,
+        },
+        {
+            label: "Transfer Ownership",
+            icon: <GroupIcon />,
+            onClick: handleClickOpenTransferOwnershipDialog,
+            ownerOnly: true,
+        },
+        {
+            label: "Invite people",
+            icon: <AddLinkIcon />,
+            onClick: handleClickOpenInviteDialog,
+            ownerOnly: false,
+        },
+        {
+            label: "Manage roles",
+            icon: <ShieldIcon />,
+            onClick: handleClickOpenManageRoleDialog,
+            ownerOnly: false,
+        },
+    ];
+
+
     return <Box>
         <Accordion
             square={true}
-            defaultExpanded>
+            defaultExpanded
+            sx={{
+                backgroundColor: "var(--color-background)",
+                color: "var(--color-foreground)",
+            }}>
             <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
+                expandIcon={<ExpandMoreIcon sx={{ color: "var(--color-foreground)" }} />}
             >
                 <Typography variant="button" fontWeight="bold">Guild Actions</Typography>
             </AccordionSummary>
-            <AccordionDetails sx={{
-                m: 0,
-                p: 0,
-            }}>
+            <AccordionDetails>
                 <MenuList>
-                    {guild.owner === user._id && (
-                        <MenuItem>
-                            <Box
-                                onClick={handleClickOpenEditDialog}
-                                sx={{
+                    {guildActions.map((action, index) => (
+                        (!action.ownerOnly || guild.owner === user._id) && (
+                            <MenuItem key={index} onClick={action.onClick}>
+                                <Box sx={{
                                     display: "flex",
                                     alignItems: "center",
-                                    gap: 0,
+                                    gap: "8px",
                                 }}>
-                                <ListItemIcon><EditIcon /></ListItemIcon>
-                                <ListItemText>Edit guild profile</ListItemText>
-                            </Box>
-                        </MenuItem>
-                    )}
-                    {guild.owner === user._id && (
-                        <MenuItem>
-                            <Box
-                                onClick={handleClickOpenTransferOwnershipDialog}
-                                sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 0,
+                                    <ListItemIcon sx={{
+                                        color: "var(--color-foreground)",
+                                    }}>{action.icon}</ListItemIcon>
+                                    <ListItemText>{action.label}</ListItemText>
+                                </Box>
+                            </MenuItem>
+                        )
+                    ))}
+                    <MenuItem onClick={guild.owner === user._id ? handleClickOpenDisbandDialog : undefined}>
+                        {guild.owner === user._id ? (
+                            <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <ListItemIcon sx={{
+                                    color: "var(--color-foreground)",
                                 }}>
-                                <ListItemIcon><GroupIcon /></ListItemIcon>
-                                <ListItemText>Transfer Ownership</ListItemText>
-                            </Box>
-                        </MenuItem>
-                    )}
-                    <MenuItem>
-                        <Box onClick={handleClickOpenInviteDialog}
-                            sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 0,
-                            }}>
-                            <ListItemIcon><AddLinkIcon /></ListItemIcon>
-                            <ListItemText>Invite people</ListItemText>
-                        </Box>
-                    </MenuItem>
-                    <MenuItem>
-                        <Box onClick={handleClickOpenManageRoleDialog}
-                            sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 0,
-                            }}>
-                            <ListItemIcon><ShieldIcon /></ListItemIcon>
-                            <ListItemText>Manage roles</ListItemText>
-                        </Box>
-                    </MenuItem>
-                    <MenuItem>
-                        {guild && guild.owner === user._id ? (
-                            <Box
-                                onClick={handleClickOpenDisbandDialog}
-                                sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 0,
-                                }}>
-                                <ListItemIcon><DeleteForeverIcon /></ListItemIcon>
+                                    <DeleteForeverIcon />
+                                </ListItemIcon>
                                 <ListItemText>Disband guild</ListItemText>
                             </Box>
                         ) : (
                             <>
-                                <ListItemIcon><LogoutIcon /></ListItemIcon>
+                                <ListItemIcon sx={{
+                                    color: "var(--color-foreground)",
+                                }}>
+                                    <LogoutIcon />
+                                </ListItemIcon>
                                 <ListItemText>Leave guild</ListItemText>
                             </>
                         )}
@@ -374,47 +374,47 @@ export default function GuildSettingsDropdown({ guild, updateGuild }: GuildInfoP
             </DialogActions>
         </Dialog>
         <Dialog open={openManageRoleDialog} keepMounted onClose={() => setOpenManageRoleDialog(false)}>
-                <DialogTitle>Manage Roles</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ display: "flex", flexDirection: "column" }}>
-                        {roles && roles.map((role: Role) => (
-                            <Box key={role._id} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                <Box sx={{ width: 16, height: 16, borderRadius: "50%", backgroundColor: role.color, flexShrink: 0 }} />
-                                <Typography sx={{ fontWeight: "bold", color: "#000000" }}>{role.name}</Typography>
-                            </Box>
-                        ))}
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenCreateRoleDialog(true)}>Create Role</Button>
-                    <Button onClick={() => setOpenManageRoleDialog(false)}>Done</Button>
-                </DialogActions>
-            </Dialog>
+            <DialogTitle>Manage Roles</DialogTitle>
+            <DialogContent>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                    {roles && roles.map((role: Role) => (
+                        <Box key={role._id} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <Box sx={{ width: 16, height: 16, borderRadius: "50%", backgroundColor: role.color, flexShrink: 0 }} />
+                            <Typography sx={{ fontWeight: "bold", color: "#000000" }}>{role.name}</Typography>
+                        </Box>
+                    ))}
+                </Box>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setOpenCreateRoleDialog(true)}>Create Role</Button>
+                <Button onClick={() => setOpenManageRoleDialog(false)}>Done</Button>
+            </DialogActions>
+        </Dialog>
 
-            {/* Create Role Modal */}
-            <Dialog open={openCreateRoleDialog} onClose={() => setOpenCreateRoleDialog(false)}>
-                <DialogTitle>Create New Role</DialogTitle>
-                <DialogContent>
-                    <TextField label="Role Name" fullWidth margin="dense" value={newRole.name} onChange={(e) => setNewRole({ ...newRole, name: e.target.value })} />
-                    <TextField type="color" fullWidth margin="dense" value={newRole.color} onChange={(e) => setNewRole({ ...newRole, color: e.target.value })} />
-                    <Select
-                        fullWidth
-                        value={newRole.displayType}
-                        onChange={(e) => setNewRole({ ...newRole, displayType: e.target.value })}
-                        margin="dense"
-                    >
-                        <MenuItem value="none">None</MenuItem>
-                        <MenuItem value="only_icon">Only Icon</MenuItem>
-                        <MenuItem value="standard">Standard</MenuItem>
-                        <MenuItem value="combined">Combined</MenuItem>
-                        <MenuItem value="seperate">Separate</MenuItem>
-                    </Select>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenCreateRoleDialog(false)}>Cancel</Button>
-                    <Button onClick={handleCreateRole} color="primary">Create</Button>
-                </DialogActions>
-            </Dialog>
+        {/* Create Role Modal */}
+        <Dialog open={openCreateRoleDialog} onClose={() => setOpenCreateRoleDialog(false)}>
+            <DialogTitle>Create New Role</DialogTitle>
+            <DialogContent>
+                <TextField label="Role Name" fullWidth margin="dense" value={newRole.name} onChange={(e) => setNewRole({ ...newRole, name: e.target.value })} />
+                <TextField type="color" fullWidth margin="dense" value={newRole.color} onChange={(e) => setNewRole({ ...newRole, color: e.target.value })} />
+                <Select
+                    fullWidth
+                    value={newRole.displayType}
+                    onChange={(e) => setNewRole({ ...newRole, displayType: e.target.value })}
+                    margin="dense"
+                >
+                    <MenuItem value="none">None</MenuItem>
+                    <MenuItem value="only_icon">Only Icon</MenuItem>
+                    <MenuItem value="standard">Standard</MenuItem>
+                    <MenuItem value="combined">Combined</MenuItem>
+                    <MenuItem value="seperate">Separate</MenuItem>
+                </Select>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setOpenCreateRoleDialog(false)}>Cancel</Button>
+                <Button onClick={handleCreateRole} color="primary">Create</Button>
+            </DialogActions>
+        </Dialog>
 
         <Dialog
             open={openEditDialog}

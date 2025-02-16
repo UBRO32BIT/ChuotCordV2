@@ -20,7 +20,7 @@ const debounce = (func: (...args: any[]) => void, delay: number) => {
     };
 };
 
-export default function MessageForm(channel: Channel) {
+export default function MessageForm({ guildId, ...channel }: { guildId: string } & Channel) {
     const [fileList, setFileList] = React.useState<File[]>([]);
     const [previewUrlList, setPreviewUrlList] = React.useState<string[]>([]);
     const [isDragging, setIsDragging] = React.useState(false);
@@ -108,7 +108,7 @@ export default function MessageForm(channel: Channel) {
             });
 
             // Send message and files to the server
-            const response = await AddMessage('abc', channel._id, formData);
+            const response = await AddMessage(guildId, channel._id, formData);
 
             setMessage('');
             setFileList([]);

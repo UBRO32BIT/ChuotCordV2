@@ -1,41 +1,170 @@
-import { PayloadAction, createSlice } from "@reduxjs/toolkit"
-import { GuildPartial } from "../../shared/guild.interface"
+import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { Guild, GuildPartial } from "../../shared/guild.interface";
+import { CreateGuild, DeleteGuild, GetGuildById, TransferOwnership, UpdateGuild } from "../../services/guild.service";
+import { getGuildsByUserId } from "../../services/user.service";
+import { JoinGuildByCode } from "../../services/invite.service";
 
 export interface IGuildsState {
-    guilds: GuildPartial[],
+    guilds: Guild[];
+    loading: boolean;
+    error: string | null;
 }
 
-const initialState : IGuildsState = {
+// Initial state
+const initialState: IGuildsState = {
     guilds: [],
-}
+    loading: false,
+    error: null,
+};
+
+export const fetchGuilds = createAsyncThunk(
+    "guilds/fetchGuilds",
+    async (_, { rejectWithValue }) => {
+        try {
+            return await getGuildsByUserId();
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const fetchGuildById = createAsyncThunk(
+    "guilds/fetchGuildById",
+    async (guildId: string, { getState, rejectWithValue }) => {
+        const state = getState() as { guilds: IGuildsState };
+
+        // Check if the guild already exists in state
+        const existingGuild = state.guilds.guilds.find(guild => guild._id === guildId);
+        if (existingGuild) {
+            return existingGuild;
+        }
+
+        // Fetch from API if not found in state
+        try {
+            return await GetGuildById(guildId);
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const createGuild = createAsyncThunk(
+    "guilds/createGuild",
+    async (data: any, { rejectWithValue }) => {
+        try {
+            return await CreateGuild(data);
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const updateGuild = createAsyncThunk(
+    "guilds/updateGuild",
+    async (data: any, { rejectWithValue }) => {
+        try {
+            return await UpdateGuild(data.guildId, data);
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const joinGuild = createAsyncThunk(
+    "guilds/joinGuild",
+    async (code: string, { rejectWithValue }) => {
+        try {
+            return await JoinGuildByCode(code);
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+)
+
+export const transferOwnership = createAsyncThunk(
+    "guilds/transferOwnership",
+    async (data: any, { rejectWithValue }) => {
+        try {
+            return await TransferOwnership(data.guildId, data.newOwnerId);
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+)
+
+export const deleteGuild = createAsyncThunk(
+    "guilds/deleteGuild",
+    async (guildId: string, { rejectWithValue }) => {
+        try {
+            await DeleteGuild(guildId);
+            return guildId;
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
 
 export const guildsSlice = createSlice({
-    name: 'guilds',
+    name: "guilds",
     initialState,
     reducers: {
-        loadGuild: (state, action: PayloadAction<GuildPartial[]>) => {
-            state.guilds = action.payload;
-        },
-        addGuild: (state, action: PayloadAction<GuildPartial>) => {
+        addGuild: (state, action: PayloadAction<Guild>) => {
             state.guilds.push(action.payload);
         },
-        editGuild: (state, action: PayloadAction<{ _id: string, changes: Partial<GuildPartial> }>) => {
+        editGuild: (state, action: PayloadAction<{ _id: string; changes: Partial<GuildPartial> }>) => {
             const { _id, changes } = action.payload;
-            const index = state.guilds.findIndex(guild => guild._id === _id);
+            const index = state.guilds.findIndex((guild) => guild._id === _id);
             if (index !== -1) {
                 state.guilds[index] = { ...state.guilds[index], ...changes };
             }
         },
-        removeGuild: (state, action: PayloadAction<string>) => {
-            state.guilds = state.guilds.filter(guild => guild._id !== action.payload);
-        }
-    }
-})
+        deleteGuild: (state, action: PayloadAction<string>) => {
+            state.guilds = state.guilds.filter((guild) => guild._id !== action.payload);
+        },
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchGuilds.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchGuilds.fulfilled, (state, action) => {
+                state.loading = false;
+                state.guilds = action.payload;
+            })
+            .addCase(fetchGuilds.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(fetchGuildById.fulfilled, (state, action) => {
+                const existingIndex = state.guilds.findIndex(guild => guild._id === action.payload._id);
+                if (existingIndex === -1) {
+                    state.guilds.push(action.payload);
+                }
+            })
+            
+            .addCase(createGuild.fulfilled, (state, action) => {
+                state.guilds.push(action.payload);
+            })
 
-export const {loadGuild, addGuild, removeGuild} = guildsSlice.actions
+            .addCase(joinGuild.fulfilled, (state, action) => {
+                state.guilds.push(action.payload);
+            })
+
+            .addCase(transferOwnership.fulfilled, (state, action) => {
+                const { guildId, newOwnerId } = action.payload;
+                const index = state.guilds.findIndex((guild) => guild._id === guildId);
+                if (index !== -1) {
+                    state.guilds[index].owner = newOwnerId;
+                }
+            })
+
+            .addCase(deleteGuild.fulfilled, (state, action) => {
+                state.guilds = state.guilds.filter((guild) => guild._id !== action.payload);
+            });
+    },
+});
+
+export const { addGuild, editGuild } = guildsSlice.actions;
 
 export default guildsSlice.reducer;
-
-export const getGuildById = (state: { guilds: IGuildsState }, _id: string) => {
-    return state.guilds.guilds.find(guild => guild._id === _id);
-};

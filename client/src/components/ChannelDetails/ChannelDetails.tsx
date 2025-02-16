@@ -49,7 +49,7 @@ export default function ChannelDetails() {
 
     return (
         <>
-            {channel && (
+            {channel && guildId && (
                 <Box
                     sx={{
                         height: '100vh', // Full height of the viewport
@@ -103,7 +103,7 @@ export default function ChannelDetails() {
                             borderTop: "1px solid rgba(0, 0, 0, 0.12)", // Optional styling
                         }}
                     >
-                        <MessageForm {...channel} />
+                        <MessageForm guildId={guildId} {...channel} />
                     </Box>
                 </Box>
             )}

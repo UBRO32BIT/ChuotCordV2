@@ -137,7 +137,9 @@ export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
                         display: "flex",
                         alignItems: "center",
                         gap: 1,
-                        p: 1
+                        p: 1,
+                        cursor: "pointer",
+                        '&:hover': { backgroundColor: "rgba(0, 0, 0, 0.1)" }
                     }}>
                         <TagIcon />
                         <Typography>{channel.name}</Typography>

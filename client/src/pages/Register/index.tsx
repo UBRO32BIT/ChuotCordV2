@@ -12,7 +12,6 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { setAccessToken } from "../../utils/localStorage";
 import useAuth from "../../hooks/useAuth";
 import { loadUser } from "../../redux/slices/userSlice";
-import { loadGuild } from "../../redux/slices/guildsSlice";
 
 const loginSchema = yup.object().shape({
     username: yup
@@ -65,8 +64,6 @@ export default function Register() {
             };
 
             dispatch(loadUser(userData));
-            const guilds = result.user.guilds;
-            dispatch(loadGuild(guilds));
 
             setAccessToken(result.tokens.accessToken.token);
             navigate("/chat");

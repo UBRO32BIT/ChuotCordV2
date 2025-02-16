@@ -18,7 +18,7 @@ export default function GuildInfo({ guild, updateGuild }: GuildInfoProps) {
         </Box>
         <Divider/>
         <Box>
-            <GuildSettingsDropdown key={guild._id} guild={guild} updateGuild={updateGuild}/>
+            <GuildSettingsDropdown key={guild._id} guild={guild} />
         </Box>
     </Box>
 }

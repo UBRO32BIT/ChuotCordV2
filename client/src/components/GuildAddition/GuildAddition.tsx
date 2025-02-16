@@ -10,9 +10,10 @@ import { CreateGuild } from "../../services/guild.service";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { useSnackbar } from "notistack";
-import { GuildPartial } from "../../shared/guild.interface";
-import { addGuild } from "../../redux/slices/guildsSlice";
+import { Guild } from "../../shared/guild.interface";
+import { addGuild, createGuild } from "../../redux/slices/guildsSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "../../store";
 
 const createGuildSchema = yup.object().shape({
     name: yup.string()
@@ -24,7 +25,7 @@ export default function GuildAddition() {
     const [openCreateGuildModal, setOpenCreateGuildModal] = React.useState(false);
     const [uploading, setUploading] = React.useState(false);
     const { enqueueSnackbar } = useSnackbar();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const {
         register: registerCreateGuild,
         handleSubmit: handleCreateGuildSubmit,
@@ -40,15 +41,8 @@ export default function GuildAddition() {
             const data = {
                 name: event.name,
             }
-            const result = await CreateGuild(data);
-            const newGuild: GuildPartial = {
-                _id: result._id,
-                name: result.name,
-                image: result.image,
-                memberCounts: 1,
-            }
-            console.log(guilds);
-            dispatch(addGuild(newGuild));
+
+            await dispatch(createGuild(data));
             enqueueSnackbar(`Guild created successfully.`, { variant: "success" });
         }
         catch (error: any) {

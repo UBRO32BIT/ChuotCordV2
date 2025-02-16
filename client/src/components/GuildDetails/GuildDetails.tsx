@@ -1,16 +1,17 @@
 import Grid from "@mui/material/Grid";
-import MessageList from "../MessageList/MessageList";
 import GuildInfo from "../GuildInfo/GuildInfo";
 import Box from "@mui/material/Box";
 import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 import React from "react";
-import { GetGuildById } from "../../services/guild.service";
 import { useSnackbar } from "notistack";
 import { Guild } from "../../shared/guild.interface";
 import ChannelDetails from "../ChannelDetails/ChannelDetails";
 import GuildOverview from "../GuildOverview/GuildOverview";
 import { Button, Typography } from "@mui/material";
 import { useSocket } from "../../context/SocketProvider";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../store";
+import { fetchGuildById } from "../../redux/slices/guildsSlice";
 
 const action = (snackbarId: any) => (
   <>
@@ -27,6 +28,7 @@ const action = (snackbarId: any) => (
 );
 export default function GuildDetails() {
   const { guildId } = useParams();
+  const dispatch = useDispatch<AppDispatch>();
   const [isLoadedGuild, setIsLoadedGuild] = React.useState<boolean>(false);
   const { enqueueSnackbar } = useSnackbar();
   const socket = useSocket();
@@ -42,8 +44,8 @@ export default function GuildDetails() {
   const fetchGuildDetails = async (guildId: string) => {
     try {
       setIsLoadedGuild(false);
-      const result = await GetGuildById(guildId);
-      setGuild(result);
+      const result = await dispatch(fetchGuildById(guildId));
+      setGuild(result.payload);
       setIsLoadedGuild(true);
     }
     catch (error: any) {

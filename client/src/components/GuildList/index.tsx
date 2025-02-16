@@ -4,47 +4,50 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import GuildMiniCard from "../GuildMiniCard/GuildMiniCard";
 import { Link } from "react-router-dom";
-import { GuildPartial } from "../../shared/guild.interface";
-import { loadGuild } from "../../redux/slices/guildsSlice";
-import { getGuildsByUserId } from "../../services/user.service";
+import { AppDispatch, RootState } from "../../store";
+import { fetchGuilds } from "../../redux/slices/guildsSlice";
+import { useSnackbar } from "notistack";
 
 export const GuildList = () => {
-    const guilds = useSelector((state: any) => state.guilds.guilds);
-    const dispatch = useDispatch();
-    const fetchGuilds = async () => {
-        try {
-            const guilds = await getGuildsByUserId();
-            dispatch(loadGuild(guilds));
-        }
-        catch (error: any) {
-            console.log(error);
-        }
-    }
-    React.useEffect(() => {
-        fetchGuilds();
+    const { guilds, loading, error } = useSelector((state: RootState) => state.guilds);
+    const dispatch = useDispatch<AppDispatch>();
+    const { enqueueSnackbar } = useSnackbar();
+
+    const fetchGuildList = async () => {
         console.log(guilds);
-        // guilds.forEach((guild: GuildPartial, _id: string, map: Map<string, GuildPartial>) => {
-        //     console.log(guild);
-        // })
-    }, [])
+        await dispatch(fetchGuilds());
+    }
+
+    React.useEffect(() => {
+        fetchGuildList();
+    }, [dispatch]);
+
+    React.useEffect(() => {
+        if (error) {
+            enqueueSnackbar(error, { variant: "error" });
+        }
+    }, [error, enqueueSnackbar]);
     return <Box
         sx={{
             justifyContent: "center",
         }}
     >
-        <Box sx={{
-
-        }}>
-            {guilds && guilds.map ? (
+        <Box>
+            {loading ? (
+                <Skeleton variant="rounded" width={210} height={60} />
+            ) : (
                 guilds.map((guild: any, index: number) => (
-                    <Box key={index}>
+                    <Box 
+                    key={index}
+                    sx={{
+                        cursor: "pointer",
+                        '&:hover': { backgroundColor: "rgba(0, 0, 0, 0.1)" }
+                    }}>
                         <Link to={`${guild._id}`} style={{ textDecoration: 'none', color: 'var(--color-foreground)' }}>
                             <GuildMiniCard {...guild} />
                         </Link>
                     </Box>
                 ))
-            ) : (
-                <Skeleton variant="rounded" width={210} height={60} />
             )}
         </Box>
     </Box>
