@@ -58,7 +58,6 @@ class UserService {
                     path: 'members.roles',
                     select: '_id name color permissionCodes displayType',
                 })
-                .select('_id name image members');
     
             return guilds.map(guild => ({
                 ...guild.toObject(),
