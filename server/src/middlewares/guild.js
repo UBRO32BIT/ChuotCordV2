@@ -28,7 +28,7 @@ const AuthorizeGuildMember = async (req, res, next) => {
         const guild = await GetGuildById(req.params.id);
         if (guild) {
             const member = guild.members.find(
-                (member) => member.memberId.toString() === userId.toString()
+                (member) => member.memberId._id.toString() === userId.toString()
             );
             if (member) {
                 req.guild = {
