@@ -5,7 +5,7 @@ const guildPermissionController = require('../../controllers/v1/guildPermission.
 const {checkAccessToken: CheckAuth} = require('../../middlewares/auth');
 const channelRoute = require('./guildChannel.route');
 const roleRoute = require('./guildRole.route');
-const {AuthorizeGuild, ValidateRemoveMember} = require('../../middlewares/guild');
+const {AuthorizeGuild, ValidateRemoveMember, AuthorizeGuildMember} = require('../../middlewares/guild');
 const { uploadGuildImage } = require('../../config/multer.config');
 
 const router = express.Router();
@@ -14,8 +14,7 @@ const router = express.Router();
 router.get('/permissions', CheckAuth, guildPermissionController.GetAll);
 
 //Routes for guilds
-router.get('/', CheckAuth, guildController.GetGuilds);
-router.get('/:id', CheckAuth, guildController.GetGuildById);
+router.get('/:id', CheckAuth, AuthorizeGuildMember, guildController.GetGuildById);
 router.post('/', CheckAuth, guildController.CreateGuild);
 router.post('/:id/ban-member', CheckAuth, AuthorizeGuild, guildController.BanMemberFromGuild);
 router.patch('/:id', CheckAuth, AuthorizeGuild, uploadGuildImage.single("image"), guildController.UpdateGuild);
@@ -28,7 +27,7 @@ router.use('/:id/channels', channelRoute);
 //Routes for guild roles
 router.use('/:id/roles', roleRoute);
 //Routes for guild invites
-router.post('/:id/invites', CheckAuth, guildInviteController.CreateInvite);
-router.get('/:id/invites', CheckAuth, guildInviteController.GetInvitesByGuildId);
+router.post('/:id/invites', CheckAuth, AuthorizeGuildMember, guildInviteController.CreateInvite);
+router.get('/:id/invites', CheckAuth, AuthorizeGuildMember, guildInviteController.GetInvitesByGuildId);
 
 module.exports = router;
