@@ -144,6 +144,7 @@ export const guildsSlice = createSlice({
             })
             
             .addCase(createGuild.fulfilled, (state, action) => {
+                action.payload.memberCounts = 1;
                 state.guilds.push(action.payload);
             })
 

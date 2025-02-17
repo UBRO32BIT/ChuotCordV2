@@ -9,14 +9,18 @@ interface GuildInfoProps {
     updateGuild: (updatedAttributes: Partial<Guild>) => void;
 }
 export default function GuildInfo({ guild, updateGuild }: GuildInfoProps) {
-    return <Box sx={{textAlign: "left"}}>
+    return <Box sx={{
+        textAlign: "left", 
+        backgroundColor: "var(--color-background)",
+        color: "var(--color-foreground)",
+    }}>
         <Box>
-            <GuildMemberList guild={guild} updateGuild={updateGuild}/>
+            <GuildMemberList guild={guild} updateGuild={updateGuild} />
         </Box>
-        <Box sx={{textAlign: "left"}}>
-            <ChannelList guild={guild} updateGuild={updateGuild}/>
+        <Box sx={{ textAlign: "left" }}>
+            <ChannelList guild={guild} updateGuild={updateGuild} />
         </Box>
-        <Divider/>
+        <Divider />
         <Box>
             <GuildSettingsDropdown key={guild._id} guild={guild} />
         </Box>

@@ -6,6 +6,9 @@ import {
 import { useSnackbar } from 'notistack';
 import { GetInviteByCode, JoinGuildByCode } from '../../../services/invite.service';
 import { GuildPartial } from '../../../shared/guild.interface';
+import { AppDispatch } from '../../../store';
+import { useDispatch } from 'react-redux';
+import { joinGuild } from '../../../redux/slices/guildsSlice';
 
 interface JoinGuildModalProps {
     open: boolean;
@@ -17,6 +20,7 @@ export default function JoinGuildModal({ open, onClose, onJoinSuccess }: JoinGui
     const [inviteInput, setInviteInput] = useState('');
     const [guildPreview, setGuildPreview] = useState<GuildPartial>();
     const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch<AppDispatch>();
     const { enqueueSnackbar } = useSnackbar();
 
     const extractInviteCode = (input: string) => {
@@ -41,7 +45,7 @@ export default function JoinGuildModal({ open, onClose, onJoinSuccess }: JoinGui
         setLoading(true);
         try {
             const inviteCode = extractInviteCode(inviteInput);
-            await JoinGuildByCode(inviteCode);
+            dispatch(joinGuild(inviteCode));
             enqueueSnackbar('Successfully joined guild!', { variant: 'success' });
             onJoinSuccess();
             onClose();
@@ -53,6 +57,8 @@ export default function JoinGuildModal({ open, onClose, onJoinSuccess }: JoinGui
 
     const handleReset = () => {
         setInviteInput('');
+        setGuildPreview(undefined);
+        onClose();
     };
 
     return (
