@@ -91,6 +91,11 @@ const ErrorCodes = {
     message: "Member not found in this guild",
     status: StatusCodes.NOT_FOUND,
   },
+  USER_ALREADY_GUILD_MEMBER: {
+    code: 2005,
+    message: "The current user is already a member of this guild",
+    status: StatusCodes.BAD_REQUEST,
+  },
   GUILD_INVITE_NOT_FOUND: {
     code: 2101,
     message: "Guild invite not found",

@@ -177,7 +177,7 @@ class GuildService {
             }
 
             const isMember = guild.members.some(
-                member => member.memberId.toString() === newOwnerId
+                member => member.memberId._id.toString() === newOwnerId
             );
             if (!isMember) {
                 throw new ApiError(ErrorCodes.NOT_A_MEMBER);

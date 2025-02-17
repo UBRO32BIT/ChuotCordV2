@@ -29,10 +29,10 @@ class InviteController {
         try {
             const { inviteCode } = req.params;
             const { userId } = req.user;
-            await guildInviteService.AddMemberByInviteCode(inviteCode, userId);
+            const guildResult = await guildInviteService.AddMemberByInviteCode(inviteCode, userId);
             res.status(StatusCodes.OK).json({
                 message: "Joined successfully",
-                data: null,
+                data: guildResult,
             });
         }
         catch (error) {

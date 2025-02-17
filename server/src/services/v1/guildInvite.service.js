@@ -84,6 +84,7 @@ class GuildInviteService {
             }
             await guildService.AddMember(invite.guild._id, userId);
             await userService.AppendGroup(userId, invite.guild._id);
+            return guildService.GetGuildById(invite.guild._id);
         }
         catch (error) {
             throw error;
