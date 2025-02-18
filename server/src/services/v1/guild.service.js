@@ -167,12 +167,12 @@ class GuildService {
 
     async TransferOwnership(guildId, newOwnerId) {
         try {
-            const guild = await GuildModel.findById(guildId);
+            const guild = await this.GetGuildById(guildId);
             if (!guild) {
                 throw new ApiError(ErrorCodes.GUILD_NOT_FOUND);
             }
 
-            if (guild.owner.toString() === newOwnerId) {
+            if (guild.owner._id.toString() === newOwnerId) {
                 throw new ApiError(ErrorCodes.ALREADY_OWNER);
             }
 

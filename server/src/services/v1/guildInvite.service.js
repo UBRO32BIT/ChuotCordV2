@@ -4,6 +4,7 @@ const GuildInviteModel = require("../../models/guild/guildInvite.model");
 const guildService = require("./guild.service");
 const userService = require("./user.service");
 const ErrorCodes = require("../../errors/errorCodes");
+const { getSocket } = require("../../utils/socket");
 
 class GuildInviteService {
     async CreateInvite({id, userId}) {
@@ -84,7 +85,14 @@ class GuildInviteService {
             }
             await guildService.AddMember(invite.guild._id, userId);
             await userService.AppendGroup(userId, invite.guild._id);
-            return guildService.GetGuildById(invite.guild._id);
+            
+            const socket = getSocket();
+            const guildResult = await guildService.GetGuildById(invite.guild._id);
+            socket.to(guildResult._id.toString()).emit('user_joined_guild', {
+                guildId: guildResult._id,
+                member: guildResult.members.find(member => member.memberId._id.toString() === userId)
+            });
+            return guildResult;
         }
         catch (error) {
             throw error;

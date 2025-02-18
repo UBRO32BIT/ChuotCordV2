@@ -13,9 +13,9 @@ interface GuildInfoProps {
 }
 
 export default function GuildMemberList({ guild, updateGuild }: GuildInfoProps) {
-    const [members, setMembers] = React.useState<Member[]>();
+    const [members, setMembers] = React.useState<Member[]>([]);
     const [onlineMembers, setOnlineMembers] = React.useState<Member[]>();
-    const [offlineMembers, setOfflineMembers] = React.useState<Member[]>();
+    const [offlineMembers, setOfflineMembers] = React.useState<Member[]>([]);
     const [isLoadedMembers, setIsLoadedMembers] = React.useState<boolean>(false);
     const [isLoadedOnlineMembers, setIsLoadedOnlineMembers] = React.useState<boolean>(false);
     const socket = useSocket();
@@ -63,6 +63,18 @@ export default function GuildMemberList({ guild, updateGuild }: GuildInfoProps) 
             setIsLoadedOnlineMembers(false);
         });
     }, [socket, guild.members, onlineMembers, offlineMembers]);
+
+    React.useEffect(() => {
+        socket.on('user_joined_guild', (data) => {
+            if (data.guildId === guild._id) {
+                setOfflineMembers((prevMembers) => [...prevMembers, data.member]);
+            }
+        });
+
+        return () => {
+            socket.off('user_joined_guild');
+        };
+    }, [socket, guild._id]);
 
     return <Box>
         <Typography variant="button" fontWeight="bold" sx={{ mx: 1 }}>Online - {onlineMembers && onlineMembers.length}</Typography>
