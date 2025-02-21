@@ -84,7 +84,7 @@ const UpdateGuild = async (guildId: string, data: any) => {
 const TransferOwnership = async (guildId: string, newOwnerId: string) => {
     return axiosClient.patch(`/guilds/${guildId}/transfer-ownership`, { newOwnerId })
     .then((res) => {
-        return res.data.data;
+        return { guildId, newOwnerId };
     })
     .catch((error) => {
         console.error(error);
