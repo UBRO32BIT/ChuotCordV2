@@ -23,13 +23,15 @@ const RegisterAccount = async (data: RegisterData) => {
 }
 
 const RefreshToken = async () => {
-    return axiosClient.post(`/auth/refresh-token`)
-        .then((res) => {
-            return res.data.data.token;
-        })
-        .catch((error) => {
-            throw Error(error.response.data.message)
-        })
+    return axiosClient.post(`/auth/refresh-token`, {}, {
+        withCredentials: true
+    })
+    .then((res) => {
+        return res.data.data.token;
+    })
+    .catch((error) => {
+        throw Error(error.response.data.message)
+    })
 }
 
 export {

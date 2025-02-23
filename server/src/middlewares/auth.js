@@ -32,28 +32,33 @@ const checkAccessToken = async (req, res, next) => {
 
 const checkRefreshToken = async (req, res, next) => {
     try {
-        if (req.cookies && req.cookies.refreshToken) {
-            const payload = jwt.verify(req.cookies.refreshToken, JWT_REFRESH_SECRET_KEY);
-            //CALL VERIFY TOKEN FUNCTION LATER
-            req.user = {
-                _id: payload.sub,
-                username: payload.username,
-            }
-            next();
-        }
-        else {
-            res.status(StatusCodes.BAD_REQUEST).json({
+        if (!req.cookies?.refreshToken) {
+            return res.status(StatusCodes.UNAUTHORIZED).json({
                 message: 'Refresh token not found'
-            })
+            });
         }
+
+        const payload = jwt.verify(req.cookies.refreshToken, JWT_REFRESH_SECRET_KEY);
+        const user = await GetUserById(payload.sub);
+        
+        if (!user) {
+            return res.status(StatusCodes.UNAUTHORIZED).json({
+                message: 'User not found'
+            });
+        }
+
+        req.user = {
+            _id: payload.sub,
+            username: payload.username,
+        };
+        next();
+    } catch (error) {
+        console.error('[Auth Middleware]:', error);
+        return res.status(StatusCodes.UNAUTHORIZED).json({
+            message: 'Invalid refresh token'
+        });
     }
-    catch (error) {
-        console.log(error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            message: error.message
-        })
-    }
-}
+};
 
 module.exports = {
     checkAccessToken,

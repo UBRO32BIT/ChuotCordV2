@@ -32,66 +32,55 @@ const axiosClient = axios.create({
     withCredentials: true,
 });
 
-// Function to inject the logout dispatcher into axios interceptors
 export const setupAxiosInterceptors = (dispatch: AppDispatch) => {
-    // Add request interceptor to set Authorization header
-    axiosClient.interceptors.request.use((config) => {
-        config.headers.Authorization = `Bearer ${getAccessToken()}`;
-        return config;
-    });
-
-    // Add response interceptor for handling 401 errors
     axiosClient.interceptors.response.use(
         (response) => response,
         async (error) => {
-            const originalRequest: AxiosRequestConfig = error.config;
+            const originalRequest = error.config;
 
-            if (error.response && error.response.status === 401) {
-                console.log("unauth");
+            // Prevent infinite loops
+            if (error.response?.status === 401 && !originalRequest._retry) {
+                originalRequest._retry = true;
+                
                 if (!isRefreshing) {
                     isRefreshing = true;
                     try {
-                        // Refresh the access token
                         const newAccessToken = await RefreshToken();
-
-                        // Update the request headers with the new access token
                         setAccessToken(newAccessToken);
-                        error.config.headers["Authorization"] = `Bearer ${newAccessToken}`;
 
-                        // Retry all requests in the queue with the new token
+                        // Update authorization header
+                        originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+                        axiosClient.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`;
+
+                        // Process pending requests
                         refreshAndRetryQueue.forEach(({ config, resolve, reject }) => {
-                            axiosClient
-                                .request(config)
-                                .then((response) => resolve(response))
-                                .catch((err) => reject(err));
+                            axiosClient(config).then(resolve).catch(reject);
                         });
-
-                        // Clear the queue
                         refreshAndRetryQueue.length = 0;
 
-                        // Retry the original request
                         return axiosClient(originalRequest);
-                    } catch (refreshError) {
-                        console.error("Token refresh failed", refreshError);
-
-                        // Dispatch logout action to update Redux state
-                        dispatch(logoutUser());
-
-                        // Clear the token and redirect to login
-                        removeAccessToken();
-                        window.location.href = `${clientHost}/login`;
+                    } catch (refreshError: any) {
+                        // Only logout if refresh token is invalid/expired
+                        if (refreshError.response?.status === 401) {
+                            dispatch(logoutUser());
+                            removeAccessToken();
+                            window.location.href = `${clientHost}/login`;
+                        }
+                        return Promise.reject(refreshError);
                     } finally {
                         isRefreshing = false;
                     }
                 }
 
-                // Add the original request to the queue
-                return new Promise<void>((resolve, reject) => {
-                    refreshAndRetryQueue.push({ config: originalRequest, resolve, reject });
+                return new Promise((resolve, reject) => {
+                    refreshAndRetryQueue.push({
+                        config: originalRequest,
+                        resolve,
+                        reject
+                    });
                 });
             }
 
-            // Return a Promise rejection if the status code is not 401
             return Promise.reject(error);
         }
     );
