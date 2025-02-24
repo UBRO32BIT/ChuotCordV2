@@ -11,7 +11,7 @@ const checkAccessToken = async (req, res, next) => {
         const authHeader = req.headers.authorization;
         //Token not found
         if (!authHeader || !authHeader.startsWith('Bearer')) {
-            res.status(StatusCodes.BAD_REQUEST).json({ message: 'Invalid access token' })
+            res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Invalid access token' })
             return;
         }
         const token = authHeader.split(' ')[1];
