@@ -20,6 +20,7 @@ class AuthController {
                     res.cookie('refreshToken', tokens.refresh.token, {
                         httpOnly: true,
                         secure: true,
+                        sameSite: 'None',
                         maxAge: 7 * 24 * 60 * 60 * 1000
                     });
                     res.status(StatusCodes.OK).json(
@@ -67,6 +68,7 @@ class AuthController {
             res.cookie('refreshToken', tokens.refresh.token, {
                 httpOnly: true,
                 secure: true,
+                sameSite: 'None',
                 maxAge: 7 * 24 * 60 * 60 * 1000
             });
 
