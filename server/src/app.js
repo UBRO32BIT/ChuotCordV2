@@ -45,7 +45,11 @@ app.use(compression());
 // enable cors
 app.use(cors({
   credentials: true, 
-  origin: true
+  origin: [
+    config.corsOriginDevelopment,
+    config.corsOriginProduction,
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 }));
 app.options('*', cors());
 

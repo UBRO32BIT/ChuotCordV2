@@ -5,21 +5,27 @@ const userService = require('../../services/v1/user.service');
 const errorHandler = require('./error.controller');
 const ErrorCodes = require('../../errors/errorCodes');
 const ApiError = require('../../errors/ApiError');
+const config = require('../../config/config');
 class AuthController {
     async Login(req, res, next) {
         try {
             console.log('Cookies: ', req.cookies)
-            const {username, password} = req.body;
+            const { username, password } = req.body;
             const loginData = await authService.Login(username, password);
             if (loginData) {
                 if (!loginData.isBanned) {
                     const tokens = await authService.GenerateAuthToken(loginData);
+
                     //Set cookies
-                    res.cookie('refreshToken', tokens.refresh.token, {httpOnly: true});
+                    res.cookie('refreshToken', tokens.refresh.token, {
+                        httpOnly: true,
+                        secure: true,
+                        maxAge: 7 * 24 * 60 * 60 * 1000
+                    });
                     res.status(StatusCodes.OK).json(
                         {
                             message: 'Login successfully',
-                            data: {user: loginData, tokens}
+                            data: { user: loginData, tokens }
                         }
                     );
                 }
@@ -44,7 +50,7 @@ class AuthController {
     }
     async Register(req, res, next) {
         try {
-            const {username, email, password, repeatPassword, phoneNumber } = req.body;
+            const { username, email, password, repeatPassword, phoneNumber } = req.body;
             if (password !== repeatPassword) {
                 throw new ApiError(ErrorCodes.PASSWORD_DOES_NOT_MATCH);
             }
@@ -56,12 +62,20 @@ class AuthController {
             }
             const userData = await authService.Register(username, email, password, phoneNumber);
             const tokens = await authService.GenerateAuthToken(userData);
+
+            //Set cookies
+            res.cookie('refreshToken', tokens.refresh.token, {
+                httpOnly: true,
+                secure: true,
+                maxAge: 7 * 24 * 60 * 60 * 1000
+            });
+
             res.status(StatusCodes.CREATED).json({
-                message: "Register successfully", 
+                message: "Register successfully",
                 data: {
-                    user: userData, 
+                    user: userData,
                     tokens: tokens,
-                } 
+                }
             });
         }
         catch (error) {
@@ -70,7 +84,7 @@ class AuthController {
     }
     async SendRecoveryEmail(req, res, next) {
         try {
-            const {email} = req.body;
+            const { email } = req.body;
             await authService.SendRecoveryEmail(email);
             res.status(StatusCodes.OK).json({ message: "Email sent to your email address" });
         }
@@ -80,8 +94,8 @@ class AuthController {
     }
     async ResetPassword(req, res, next) {
         try {
-            const {token} = req.query;
-            const {newPassword} = req.body;
+            const { token } = req.query;
+            const { newPassword } = req.body;
             await authService.ResetPassword(token, newPassword);
             res.status(StatusCodes.OK).json({ message: "Change password successfully" });
         }
@@ -96,7 +110,7 @@ class AuthController {
             res.status(StatusCodes.OK).json(
                 {
                     message: 'OK',
-                    data: {token: token}
+                    data: { token: token }
                 }
             );
         }
@@ -109,7 +123,7 @@ class AuthController {
     }
     async IsAuthenticated(req, res, next) {
         try {
-            res.status(StatusCodes.OK).json({message: "test"});
+            res.status(StatusCodes.OK).json({ message: "test" });
         }
         catch (error) {
             errorHandler(error, req, res, next);

@@ -30,6 +30,8 @@ const envVarsSchema = Joi.object()
     SSL_CERT_PATH: Joi.string().description('SSL certificate path'),
     SSL_KEY_PATH: Joi.string().description('SSL key path'),
     UPLOADS_DIR: Joi.string().description('uploads directory path'),
+    CORS_ORIGIN_DEVELOPMENT: Joi.string().description('CORS origin for development environment'),
+    CORS_ORIGIN_PRODUCTION: Joi.string().description('CORS origin for production environment'),
   })
   .unknown();
 
@@ -77,4 +79,6 @@ module.exports = {
   sslCertPath: envVars.SSL_CERT_PATH,
   sslKeyPath: envVars.SSL_KEY_PATH,
   uploadsPath: envVars.UPLOADS_DIR,
+  corsOriginDevelopment: envVars.CORS_ORIGIN_DEVELOPMENT,
+  corsOriginProduction: envVars.CORS_ORIGIN_PRODUCTION,
 };
