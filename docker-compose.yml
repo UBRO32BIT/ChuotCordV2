@@ -1,7 +1,7 @@
-version: '3.8'  # Specify the Compose file format version
+version: '3.8'
 services:
   server:
-    container_name: chuotcord-chat-service
+    image: ubro3/chuotcord-chat-service:latest
     build: ./server
     ports:
       - "8080:8080"
@@ -11,9 +11,9 @@ services:
     volumes:
       - ./server:/usr/src/server
       - server_node_modules:/usr/src/server/node_modules
-      - ./certs:/usr/src/certificates  # Mount certificates
+      - ./certs:/usr/src/certificates
     environment:
-      CERT_PATH: /usr/src/certificates  # Pass the path to the app
+      CERT_PATH: /usr/src/certificates
     deploy:
       resources:
         limits:
@@ -24,14 +24,14 @@ services:
           memory: "128M"
 
   client:
-    container_name: chuotcord-client-service
+    image: ubro3/chuotcord-client-service:latest
     build: ./client
     ports:
       - "3000:3000"
     volumes:
       - ./client:/usr/src/client
       - client_node_modules:/usr/src/client/node_modules
-      - ./certs:/usr/src/certificates  # Mount certificates
+      - ./certs:/usr/src/certificates
     environment:
       CERT_PATH: /usr/src/certificates
     deploy:
@@ -44,8 +44,8 @@ services:
           memory: "768M"
 
   nginx:
-    container_name: chuotcord-nginx-service
-    image: nginx:latest
+    image: ubro3/chuotcord-nginx-service:latest
+    build: ./nginx
     ports:
       - "80:80"
       - "443:443"
@@ -54,7 +54,7 @@ services:
       - client
     volumes:
       - ./nginx:/etc/nginx/conf.d
-      - ./certs:/etc/nginx/certs  # Mount certificates for Nginx
+      - ./certs:/etc/nginx/certs
     deploy:
       resources:
         limits:
@@ -62,7 +62,6 @@ services:
           memory: "64M"
 
   redis:
-    container_name: chuotcord-redis-service
     image: redis
     ports:
       - "127.0.0.1:6379:6379"
@@ -80,7 +79,6 @@ services:
           memory: "128M"
 
   mongodb:
-    container_name: chuotcord-mongo-service
     image: mongo:latest
     ports:
       - "27017:27017"
