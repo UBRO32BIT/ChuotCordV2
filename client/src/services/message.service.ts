@@ -1,4 +1,4 @@
-import axiosClient from "./apiService";
+import axiosClient from "../config/axiosClient";
 
 const GetMessageByChannelId = async (guildId: string, channelId: string, before?: string) => {
     const params = before ? { before } : {};

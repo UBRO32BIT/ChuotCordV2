@@ -1,4 +1,4 @@
-import axiosClient from "./apiService";
+import axiosClient from "../config/axiosClient";
 
 const GetInvitesByGuildId = async (guildId: string) => {
     return axiosClient.get(`/guilds/${guildId}/invites`)

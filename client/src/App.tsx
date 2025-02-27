@@ -7,6 +7,7 @@ import SuccessSnackbar from './components/CustomSnackbar/SuccessSnackbar';
 import ErrorSnackbar from './components/CustomSnackbar/ErrorSnackbar';
 import { io } from 'socket.io-client';
 import { SocketProvider } from './context/SocketProvider';
+import { useAuth } from './hooks/useAuth';
 
 type AnchorOrigin = SnackbarOrigin;
 const customAnchorOrigin: AnchorOrigin = {
@@ -23,9 +24,7 @@ declare module "notistack" {
 }
 
 function App() {
-  React.useEffect(() => {
-
-  }, [])
+  const {isRefreshing} = useAuth();
   
   return (
     <div className="App">

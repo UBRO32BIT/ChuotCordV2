@@ -1,4 +1,4 @@
-import axiosClient from "./apiService";
+import axiosClient from "../config/axiosClient";
 
 const getGuildsByUserId = async () => {
     return axiosClient.get(`/users/guilds`)

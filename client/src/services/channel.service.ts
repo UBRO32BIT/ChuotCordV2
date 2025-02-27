@@ -1,4 +1,4 @@
-import axiosClient from "./apiService"
+import axiosClient from "../config/axiosClient"
 
 const CreateChannel = async (guildId: string, data: any) => {
     return axiosClient.post(`/guilds/${guildId}/channels`, data)

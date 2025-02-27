@@ -1,5 +1,6 @@
 import { LoginData, RefreshTokenData, RegisterData } from "../shared/auth.interface"
-import axiosClient from "./apiService"
+import axiosClient from "../config/axiosClient"
+import uninterceptedAxiosClient from "../config/uninterceptedAxiosClient"
 
 const LoginWithCredentials = async (data: LoginData) => {
     return axiosClient.post(`/auth/login`, data)
@@ -18,20 +19,17 @@ const RegisterAccount = async (data: RegisterData) => {
             return res.data.data;
         })
         .catch((error) => {
-            throw Error(error.response.data.message)
+            throw new Error(error.response.data.message)
         })
 }
 
 const RefreshToken = async () => {
-    return axiosClient.post(`/auth/refresh-token`, {}, {
-        withCredentials: true
-    })
-    .then((res) => {
+    try {
+        const res = await uninterceptedAxiosClient.post(`/auth/refresh-token`, {}, { withCredentials: true });
         return res.data.data.token;
-    })
-    .catch((error) => {
-        throw Error(error.response.data.message)
-    })
+    } catch (error: any) {
+        throw error;
+    }
 }
 
 export {

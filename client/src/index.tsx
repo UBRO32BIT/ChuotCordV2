@@ -7,9 +7,6 @@ import { Provider } from 'react-redux';
 import {store, persistor} from './store';
 import { BrowserRouter } from 'react-router-dom';
 import { PersistGate } from 'redux-persist/integration/react';
-import { setupAxiosInterceptors } from './services/apiService';
-
-setupAxiosInterceptors(store.dispatch);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
