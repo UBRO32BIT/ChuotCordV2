@@ -44,8 +44,7 @@ services:
           memory: "768M"
 
   nginx:
-    image: ubro3/chuotcord-nginx-service:latest
-    build: ./nginx
+    image: nginx:latest
     ports:
       - "80:80"
       - "443:443"
