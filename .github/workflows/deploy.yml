@@ -90,5 +90,5 @@ jobs:
           chmod 600 private_key
           mkdir -p ~/.ssh
           ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
-          scp -i private_key docker-compose.yml $SSH_USERNAME@$SSH_HOST:/home/azureuser/ChuotcordV2
-          ssh -i private_key $SSH_USERNAME@$SSH_HOST "cd /home/azureuser/ChuotcordV2 && docker-compose pull && docker-compose up -d"
+          scp -i private_key docker-compose.yml $SSH_USERNAME@$SSH_HOST:/home/$SSH_USERNAME/ChuotCordV2
+          ssh -i private_key $SSH_USERNAME@$SSH_HOST "cd /home/$SSH_USERNAME/ChuotCordV2 && docker-compose pull && docker-compose up -d"
