@@ -52,6 +52,8 @@ export default function VoiceChannelDetails() {
     getUserMedia();
 
     return () => {
+      socket.emit("leave_voice_channel", { channelId });
+      peers.forEach(({ peer }) => peer.destroy());
       socket.off("user_joined");
       socket.off("signal");
       socket.off("user_left_voice_channel");

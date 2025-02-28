@@ -61,14 +61,10 @@ const createSocket = (httpServer) => {
                 next(new Error(error.message));
             }
         })
-
-        socket.on("join_voice_channel", ({ channelId }) => {
-            socket.join(channelId);
-            socket.to(channelId).emit("user_joined", socket.id);
-        });
         
         socket.on("signal", ({ channelId, signalData, toSocketId }) => {
-            socket.to(toSocketId).emit("signal", { signalData, fromSocketId: socket.id });
+            console.log("[SOCKET] Signal voice chat data", { channelId, signalData, toSocketId });
+            socket.to(channelId).emit("signal", { signalData, fromSocketId: socket.id });
         });
 
         socket.on("request_online_members", async (data) => {
@@ -96,7 +92,7 @@ const createSocket = (httpServer) => {
             }
         })
 
-        socket.on("user_join_voice_channel", async (data) => {
+        socket.on("join_voice_channel", async (data) => {
             try {
                 if (data && data.channelId) {
                     socket.join(data.channelId);
@@ -109,7 +105,7 @@ const createSocket = (httpServer) => {
             }
         });
 
-        socket.on("user_leave_voice_channel", async (data) => {
+        socket.on("leave_voice_channel", async (data) => {
             try {
                 if (data && data.channelId) {
                     socket.leave(data.channelId);
