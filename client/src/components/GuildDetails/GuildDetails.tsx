@@ -13,6 +13,7 @@ import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../store";
 import { fetchGuildById } from "../../redux/slices/guildsSlice";
 import InfoIcon from "@mui/icons-material/Info";
+import VoiceChannelDetails from "../VoiceChannelDetails/VoiceChannelDetails";
 
 const action = (snackbarId: any) => (
   <>
@@ -81,6 +82,7 @@ export default function GuildDetails() {
               <Routes>
                 <Route path="/" element={<GuildOverview />} />
                 <Route path="/channels/:channelId" element={<ChannelDetails />} />
+                <Route path="/voice-channels/:channelId" element={<VoiceChannelDetails />} />
               </Routes>
             </Box>
           </Grid>
@@ -88,7 +90,7 @@ export default function GuildDetails() {
           {/* GuildInfo as a Drawer in Mobile, Sidebar in Desktop */}
           {!isMobile ? (
             <Grid item md={2.5}>
-              <Box sx={{ borderLeft: "1px solid grey", height: "100vh" }}>
+              <Box sx={{ borderLeft: "1px solid grey", height: "100vh", display: "flex" }}>
                 <GuildInfo guild={guild} updateGuild={updateGuild} />
               </Box>
             </Grid>

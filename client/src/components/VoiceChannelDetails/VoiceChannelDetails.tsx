@@ -1,87 +1,121 @@
-import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import { useSocket } from "../../context/SocketProvider";
-import { useSnackbar } from "notistack";
-import { Channel } from "../../shared/guild.interface";
-import { getChannelById } from "../../services/channel.service";
 import SimplePeer from "simple-peer";
+import { Box, Typography } from "@mui/material";
 
-const VoiceChannelDetails = () => {
-    // const [peers, setPeers] = React.useState([]);
-    // const audioRefs = React.useRef<any>({});
-    // const localStream = React.useRef(null);
+interface Peer {
+  peer: SimplePeer.Instance;
+  socketId: string;
+}
 
-    // const { guildId } = useParams();
-    // const { channelId } = useParams();
-    // const socket = useSocket();
-    // const { enqueueSnackbar } = useSnackbar();
-    // const navigate = useNavigate();
-    // const [channel, setChannel] = React.useState<Channel>();
+export default function VoiceChannelDetails() {
+  const { channelId } = useParams();
+  const socket = useSocket();
+  const [peers, setPeers] = useState<Peer[]>([]);
+  const localStream = useRef<MediaStream | null>(null);
+  const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
 
-    // const fetchChannelDetails = async (guildId: string, channelId: string) => {
-    //     try {
-    //         const result = await getChannelById(guildId, channelId);
-    //         if (result) {
-    //             setChannel(result);
-    //         }
-    //         else throw Error("Channel data not found");
-    //     } catch (error: any) {
-    //         enqueueSnackbar(`${error.message}`, { variant: "error" });
-    //         navigate("/chat");
-    //     }
-    // };
+  useEffect(() => {
+    const getUserMedia = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        localStream.current = stream;
 
-    // React.useEffect(() => {
-    //     // Join the room
-    //     socket.emit("user_join_voice_channel", { channelId });
+        socket.emit("join_voice_channel", { channelId });
 
-    //     // Get user's audio stream
-    //     navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((stream) => {
-    //         localStream.current = stream;
+        socket.on("user_joined_voice_channel", (socketId) => {
+          if (socket.id) {
+            const peer = createPeer(socketId, socket.id, localStream.current!);
+            setPeers(prevPeers => [...prevPeers, { peer, socketId }]);
+          }
+        });
 
-    //         // Listen for other users joining
-    //         socket.on("user-joined", (userId) => {
-    //             const peer = createPeer(userId, socket.id, stream);
-    //             setPeers((prev) => [...prev, { peer, socketId }]);
-    //         });
+        socket.on("user_left_voice_channel", (socketId) => {
+          setPeers(prevPeers => prevPeers.filter(peer => peer.socketId !== socketId));
+        });
 
-    //         // Listen for incoming signals
-    //         socket.on("signal", ({ signalData, fromSocketId }) => {
-    //             const peer = peers.find((p) => p.socketId === fromSocketId)?.peer;
-    //             if (peer) {
-    //                 peer.signal(signalData);
-    //             } else {
-    //                 const newPeer = addPeer(signalData, fromSocketId, stream);
-    //                 setPeers((prev) => [...prev, { peer: newPeer, socketId: fromSocketId }]);
-    //             }
-    //         });
-    //     });
+        socket.on("signal", ({ signalData, fromSocketId }) => {
+          const peer = peers.find((p) => p.socketId === fromSocketId)?.peer;
+          if (peer) {
+            peer.signal(signalData);
+          } else {
+            const newPeer = addPeer(signalData, fromSocketId, stream);
+            setPeers((prev) => [...prev, { peer: newPeer, socketId: fromSocketId }]);
+          }
+        });
+      } catch (error) {
+        console.error("Error accessing media devices.", error);
+      }
+    };
 
-    //     return () => {
-    //         socket.disconnect();
-    //     };
-    // }, [roomId, userId]);
+    getUserMedia();
 
-    // const createPeer = (socketId: string, initiatorSocketId: string, stream: MediaStream) => {
-    //     const peer = new SimplePeer({
-    //         initiator: true,
-    //         trickle: false,
-    //         stream,
-    //     });
+    return () => {
+      socket.off("user_joined");
+      socket.off("signal");
+      socket.off("user_left_voice_channel");
+      if (localStream.current) {
+        localStream.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [channelId, socket]);
 
-    //     peer.on("signal", (signalData) => {
-    //         socket.emit("signal", { channelId, signalData, toSocketId: socketId });
-    //     });
+  const createPeer = (socketId: string, initiatorSocketId: string, stream: MediaStream) => {
+    const peer = new SimplePeer({
+      initiator: true,
+      trickle: true,
+      stream,
+    });
 
-    //     peer.on("stream", (remoteStream) => {
-    //         if (!audioRefs.current[socketId]) {
-    //             audioRefs.current[socketId] = new Audio();
-    //             audioRefs.current[socketId].srcObject = remoteStream;
-    //             audioRefs.current[socketId].play();
-    //         }
-    //     });
+    peer.on("signal", (signalData) => {
+      socket.emit("signal", { channelId, signalData, toSocketId: socketId });
+    });
 
-    //     return peer;
-    // };
-    return <div></div>;
+    peer.on("stream", (remoteStream) => {
+      if (!audioRefs.current[socketId]) {
+        audioRefs.current[socketId] = new Audio();
+        audioRefs.current[socketId].srcObject = remoteStream;
+        audioRefs.current[socketId].play().catch(err => console.error("Autoplay error:", err));
+      }
+    });
+
+    return peer;
+  };
+
+  const addPeer = (signalData: SimplePeer.SignalData, socketId: string, stream: MediaStream) => {
+    const peer = new SimplePeer({
+      initiator: false,
+      trickle: false,
+      stream,
+    });
+
+    peer.on("signal", (signal) => {
+      socket.emit("signal", { channelId, signalData: signal, toSocketId: socketId });
+    });
+
+    peer.on("stream", (remoteStream) => {
+      if (!audioRefs.current[socketId]) {
+        audioRefs.current[socketId] = new Audio();
+        audioRefs.current[socketId].srcObject = remoteStream;
+        audioRefs.current[socketId].play();
+      }
+    });
+
+    peer.signal(signalData);
+
+    return peer;
+  };
+
+  return (
+    <Box>
+      <Typography variant="h6">Voice Channel</Typography>
+      {peers.map((peer) => (
+        <Typography key={peer.socketId}>User: {peer.socketId}</Typography>
+      ))}
+      {peers.length === 0 && (
+        <Typography>No one is in the voice chat yet</Typography>
+      )}
+    </Box>
+  );
 }

@@ -102,26 +102,33 @@ export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
         }}>
             <Typography variant="button" fontWeight="bold" sx={{ mx: 1 }}>Channels - {channels && channels.length}</Typography>
             <IconButton onClick={handleOpenCreateChannelModal}>
-                <AddIcon fontSize="small" className="guild-addition-btn"/>
+                <AddIcon fontSize="small" className="guild-addition-btn" />
             </IconButton>
         </Box>
         {channels && channels.map && channels.map((channel) => (
             channel.type === "voice" ? (
-                // Render voice channel as a non-link and call a function on click
-                <Box
-                    className="channel-item"
+                <Link
                     key={channel._id}
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        p: 1,
+                    to={`voice-channels/${channel._id}`}
+                    style={{
+                        textDecoration: "none",
+                        color: "var(--color-foreground)",
                     }}
-                    onClick={() => handleVoiceChannelClick(channel._id)}
                 >
-                    <VolumeUpIcon />
-                    <Typography>{channel.name}</Typography>
-                </Box>
+                    <Box
+                        className="channel-item"
+                        key={channel._id}
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            p: 1,
+                        }}
+                    >
+                        <VolumeUpIcon />
+                        <Typography>{channel.name}</Typography>
+                    </Box>
+                </Link>
             ) : (
                 // Render text channel as a Link
                 <Link
@@ -133,13 +140,13 @@ export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
                     }}
                 >
                     <Box
-                    className="channel-item" 
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        p: 1,
-                    }}>
+                        className="channel-item"
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            p: 1,
+                        }}>
                         <TagIcon />
                         <Typography>{channel.name}</Typography>
                     </Box>

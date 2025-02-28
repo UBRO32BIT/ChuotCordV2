@@ -62,6 +62,15 @@ const createSocket = (httpServer) => {
             }
         })
 
+        socket.on("join_voice_channel", ({ channelId }) => {
+            socket.join(channelId);
+            socket.to(channelId).emit("user_joined", socket.id);
+        });
+        
+        socket.on("signal", ({ channelId, signalData, toSocketId }) => {
+            socket.to(toSocketId).emit("signal", { signalData, fromSocketId: socket.id });
+        });
+
         socket.on("request_online_members", async (data) => {
             try {
                 if (data && data.guildId) {
