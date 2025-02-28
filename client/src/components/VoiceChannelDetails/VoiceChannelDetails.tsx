@@ -16,16 +16,19 @@ export default function VoiceChannelDetails() {
   const localStream = useRef<MediaStream | null>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
 
-  useEffect(() => {
+  React.useEffect(() => {
+    socket.emit("join_voice_channel", { channelId });
+  }, [channelId]);
+
+  React.useEffect(() => {
     const getUserMedia = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         localStream.current = stream;
 
-        socket.emit("join_voice_channel", { channelId });
-
         socket.on("user_joined_voice_channel", (socketId) => {
           if (socket.id) {
+            console.log(socket.id);
             const peer = createPeer(socketId, socket.id, localStream.current!);
             setPeers(prevPeers => [...prevPeers, { peer, socketId }]);
           }

@@ -107,12 +107,12 @@ export default function MessageForm({ guildId, ...channel }: { guildId: string }
                 formData.append("files", file);
             });
 
-            // Send message and files to the server
-            const response = await AddMessage(guildId, channel._id, formData);
-
             setMessage('');
             setFileList([]);
             setPreviewUrlList([]);
+
+            // Send message and files to the server
+            const response = await AddMessage(guildId, channel._id, formData);
         }
         catch (error) {
             console.error("Error uploading message and files:", error);

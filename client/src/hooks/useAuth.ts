@@ -37,8 +37,8 @@ export const useAuth = () => {
         catch (refreshError) {
           logout();
         }
-        return Promise.reject(error);
       }
+      return Promise.reject(error);
     });
 
   return { isRefreshing };
