@@ -91,4 +91,4 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
           scp -i private_key docker-compose.yml $SSH_USERNAME@$SSH_HOST:/home/$SSH_USERNAME/ChuotCordV2
-          ssh -i private_key $SSH_USERNAME@$SSH_HOST "cd /home/$SSH_USERNAME/ChuotCordV2 && docker-compose pull && docker-compose up -d"
+          ssh -i private_key $SSH_USERNAME@$SSH_HOST "cd /home/$SSH_USERNAME/ChuotCordV2 && docker-compose down && docker-compose pull && docker-compose up -d"
