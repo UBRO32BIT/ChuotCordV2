@@ -19,6 +19,42 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
+      - name: Create client .env file
+        run: |
+          echo "SSL_CRT_FILE=${{ secrets.SSL_CRT_FILE }}" > client/.env
+          echo "SSL_KEY_FILE=${{ secrets.SSL_KEY_FILE }}" >> client/.env
+          echo "HTTPS=${{ secrets.HTTPS }}" >> client/.env
+          echo "REACT_APP_CLIENT_HOST=${{ secrets.REACT_APP_CLIENT_HOST }}" >> client/.env
+          echo "REACT_APP_CHAT_SERVER_HOST=${{ secrets.REACT_APP_CHAT_SERVER_HOST }}" >> client/.env
+          echo "REACT_APP_CMS_SERVER_HOST=${{ secrets.REACT_APP_CMS_SERVER_HOST }}" >> client/.env
+          echo "REACT_APP_CHAT_SERVER_API_URL=${{ secrets.REACT_APP_CHAT_SERVER_API_URL }}" >> client/.env
+
+      - name: Create server .env file
+        run: |
+          echo "NODE_ENV=${{ secrets.NODE_ENV }}" > server/.env
+          echo "MONGODB_URL=${{ secrets.MONGODB_URL }}" >> server/.env
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> server/.env
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> server/.env
+          echo "JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}" >> server/.env
+          echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}" >> server/.env
+          echo "JWT_RECOVERY_SECRET=${{ secrets.JWT_RECOVERY_SECRET }}" >> server/.env
+          echo "JWT_ACCESS_EXPIRATION_MINUTES=${{ secrets.JWT_ACCESS_EXPIRATION_MINUTES }}" >> server/.env
+          echo "JWT_REFRESH_EXPIRATION_DAYS=${{ secrets.JWT_REFRESH_EXPIRATION_DAYS }}" >> server/.env
+          echo "JWT_RESET_PASSWORD_EXPIRATION_MINUTES=${{ secrets.JWT_RESET_PASSWORD_EXPIRATION_MINUTES }}" >> server/.env
+          echo "JWT_VERIFY_EMAIL_EXPIRATION_MINUTES=${{ secrets.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES }}" >> server/.env
+          echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> server/.env
+          echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> server/.env
+          echo "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> server/.env
+          echo "EMAIL_FROM=${{ secrets.EMAIL_FROM }}" >> server/.env
+          echo "SERVER_HOST=${{ secrets.SERVER_HOST }}" >> server/.env
+          echo "CLIENT_HOST=${{ secrets.CLIENT_HOST }}" >> server/.env
+          echo "SSL_CERT_PATH=${{ secrets.SSL_CERT_PATH }}" >> server/.env
+          echo "SSL_KEY_PATH=${{ secrets.SSL_KEY_PATH }}" >> server/.env
+          echo "UPLOADS_DIR=${{ secrets.UPLOADS_DIR }}" >> server/.env
+          echo "CORS_ORIGIN_DEVELOPMENT=${{ secrets.CORS_ORIGIN_DEVELOPMENT }}" >> server/.env
+          echo "CORS_ORIGIN_PRODUCTION=${{ secrets.CORS_ORIGIN_PRODUCTION }}" >> server/.env
+
+
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
