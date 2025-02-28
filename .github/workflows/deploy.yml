@@ -88,5 +88,6 @@ jobs:
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
+          ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
           scp -i private_key docker-compose.yml $SSH_USERNAME@$SSH_HOST:/home/azureuser/ChuotcordV2
           ssh -i private_key $SSH_USERNAME@$SSH_HOST "cd /home/azureuser/ChuotcordV2 && docker-compose pull && docker-compose up -d"
