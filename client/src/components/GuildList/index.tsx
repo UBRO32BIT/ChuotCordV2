@@ -14,7 +14,6 @@ export const GuildList = () => {
     const { enqueueSnackbar } = useSnackbar();
 
     const fetchGuildList = async () => {
-        console.log(guilds);
         await dispatch(fetchGuilds());
     }
 

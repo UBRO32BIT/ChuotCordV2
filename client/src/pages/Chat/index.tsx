@@ -33,12 +33,10 @@ export default function Chat() {
         } else {
           document.body.classList.remove('dark');
         }
-        console.log(isDarkMode);
       }, [isDarkMode]);
 
     const fetchSocketStatus = () => {
         if (!socket.connected) {
-            console.log("disconnected");
             enqueueSnackbar(`Socket disconnected`, {
                 variant: "error",
                 preventDuplicate: true,
@@ -54,7 +52,6 @@ export default function Chat() {
 
     const handleReconnect = async (snackbarId: any) => {
         try {
-            console.log("reconnecting");
             const accessToken = await RefreshToken();
             socket.auth = { token: "Bearer " + accessToken };
             setAccessToken(accessToken);

@@ -13,7 +13,6 @@ export default function MemberTyping() {
     
         // Listen for "user_typing" events
         socket.on("user_typing", (data: { channelId: string; userId: string }) => {
-            console.log(data);
           if (data.channelId === channelId) {
             setTypingUsers((prev) => {
               // Add the user if not already in the list

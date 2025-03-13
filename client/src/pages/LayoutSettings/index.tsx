@@ -19,7 +19,6 @@ export default function LayoutSettings() {
         } else {
           document.body.classList.remove('dark');
         }
-        console.log(isDarkMode);
       }, [isDarkMode]);
     return <Grid container sx={{ height: "100vh" }}>
         <Grid

@@ -190,7 +190,6 @@ export default function GuildSettingsDropdown({ guildId }: GuildInfoProps) {
         try {
             const formData = new FormData();
             if (guildImage) {
-                console.log("hello");
                 formData.append('image', guildImage);
             }
             formData.append('name', data.name);
@@ -390,7 +389,7 @@ export default function GuildSettingsDropdown({ guildId }: GuildInfoProps) {
                             <Typography>Invites</Typography>
                             <Box>
                                 {invites && invites.map((invite) => (
-                                    <Chip label={invite.string} />
+                                    <Chip key={invite._id} label={invite.string} />
                                 ))}
                             </Box>
                         </Box>

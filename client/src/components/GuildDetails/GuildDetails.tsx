@@ -62,7 +62,6 @@ export default function GuildDetails() {
   const joinGuildSocket = () => {
     if (guildId && isLoadedGuild) {
       socket.emit("user_connect_guild", { guildId });
-      console.log("guild loaded");
     }
   };
 

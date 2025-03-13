@@ -29,7 +29,6 @@ export default function GuildMemberList({ guild, updateGuild }: GuildInfoProps) 
 
     React.useEffect(() => {
         if (socket && guild.members && isLoadedMembers && !isLoadedOnlineMembers) {
-            console.log("requesting online members");
             socket.emit("request_online_members", { guildId: guild._id });
 
             return () => {
@@ -40,7 +39,6 @@ export default function GuildMemberList({ guild, updateGuild }: GuildInfoProps) 
 
     React.useEffect(() => {
         socket.on("online_members", (data) => {
-            console.log(data);
             const onlineMemberSet = new Set(data);
             const filteredOnlineMembers = guild.members.filter(member => onlineMemberSet.has(member.memberId._id));
             const filteredOfflineMembers = guild.members.filter(member => !onlineMemberSet.has(member.memberId._id));

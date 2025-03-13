@@ -25,7 +25,6 @@ export default function InvitationPage() {
                     guild: data.guild,
                 }
                 setInvite(result);
-                console.log(result);
             }
         }
         catch (error: any) {

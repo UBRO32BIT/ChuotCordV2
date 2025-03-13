@@ -25,7 +25,6 @@ export default function MessageList() {
         if (guildId && channelId) {
             try {
                 const result = await GetMessageByChannelId(guildId, channelId, before);
-                console.log("Fetch messages");
                 if (result.length === 0) {
                     setHasMoreMessages(false); // No more messages to load
                 } else {
@@ -52,7 +51,6 @@ export default function MessageList() {
         if (messagesRef.current) {
             // Check if scrolled to the top
             if (messagesRef.current.scrollTop < 10 && hasMoreMessages && !loadingOlderMessages) {
-                console.log("Scrolled to the top, getting older messages");
                 setLoadingOlderMessages(true);
                 const oldestMessageId = messages[0]?._id; // Get the ID of the oldest message
                 fetchMessages(oldestMessageId);
@@ -69,7 +67,6 @@ export default function MessageList() {
     // Scroll to bottom when messages are loaded initially
     React.useEffect(() => {
         if (isInitialLoaded && messages.length > 0 && bottomRef.current) {
-            console.log("Auto scroll to bottom at default");
             bottomRef.current.scrollIntoView({ behavior: "instant" } as any);
             setIsInitialLoaded(false);
         }

@@ -22,7 +22,7 @@ class MessageService {
                     },
                     {
                         path: 'attachments',
-                        select: '_id type url fullUrl',
+                        select: '_id type originalFileName url fullUrl',
                     }
                 ]);
 
@@ -69,7 +69,7 @@ class MessageService {
                     { 
                         path: 'attachments',
                         match: attachmentType ? { type: attachmentType } : {},
-                        select: '_id type url fullUrl'
+                        select: '_id type originalFileName url fullUrl'
                     }
                 ]
             });
@@ -109,7 +109,7 @@ class MessageService {
                 },
                 {
                     path: 'attachments',
-                    select: '_id type url fullUrl',
+                    select: '_id type originalFileName url fullUrl',
                 }
             ]);
 
