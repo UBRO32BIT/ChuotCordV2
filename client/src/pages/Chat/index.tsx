@@ -35,9 +35,9 @@ export default function Chat() {
         }
       }, [isDarkMode]);
 
-    const fetchSocketStatus = () => {
+      const fetchSocketStatus = () => {
         if (!socket.connected) {
-            enqueueSnackbar(`Socket disconnected`, {
+            const snackbarId = enqueueSnackbar(`Socket disconnected`, {
                 variant: "error",
                 preventDuplicate: true,
                 action: (snackbarId) => (
@@ -46,29 +46,28 @@ export default function Chat() {
                     </Button>
                 ),
             });
-            handleReconnect("");
         }
     };
 
     const handleReconnect = async (snackbarId: any) => {
         try {
             const accessToken = await RefreshToken();
-            socket.auth = { token: "Bearer " + accessToken };
             setAccessToken(accessToken);
+            socket.auth = { token: "Bearer " + accessToken };
 
-            // Attempt to reconnect the socket
-            socket.connect();
+            socket.off("connect");
+            socket.off("connect_error");
 
-            // Once the socket is connected, dismiss the snackbar
             socket.on("connect", () => {
                 closeSnackbar(snackbarId);
                 enqueueSnackbar("Reconnected successfully", { variant: "success", preventDuplicate: true });
             });
 
-            // Handle potential reconnection errors
             socket.on("connect_error", (err) => {
                 enqueueSnackbar(`Reconnect failed: ${err.message}`, { variant: "error", preventDuplicate: true });
             });
+
+            socket.connect();
         }
         catch (error) {
             console.error("Reconnect failed", error);
@@ -76,12 +75,9 @@ export default function Chat() {
     };
 
     React.useEffect(() => {
-        // Set up the interval to check socket status every second
-        const intervalId = setInterval(fetchSocketStatus, 1000);
-
-        // Clean up the interval on component unmount
+        const intervalId = setInterval(fetchSocketStatus, 3000);
         return () => clearInterval(intervalId);
-    }, []); // Empty dependency array ensures this runs once on mount
+    }, []);
 
     const sidebar = (
         <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
