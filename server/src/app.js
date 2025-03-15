@@ -51,7 +51,6 @@ app.use(cors({
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 }));
-app.options('*', cors());
 
 // cookies parser from request data
 app.use(cookieParser())

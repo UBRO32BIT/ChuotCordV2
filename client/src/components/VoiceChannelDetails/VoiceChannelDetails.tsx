@@ -28,7 +28,6 @@ export default function VoiceChannelDetails() {
 
         socket.on("user_joined_voice_channel", (socketId) => {
           if (socket.id) {
-            console.log(socket.id);
             const peer = createPeer(socketId, socket.id, localStream.current!);
             setPeers(prevPeers => [...prevPeers, { peer, socketId }]);
           }
