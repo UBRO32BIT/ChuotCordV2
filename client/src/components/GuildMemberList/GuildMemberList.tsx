@@ -13,8 +13,7 @@ interface GuildInfoProps {
 }
 
 export default function GuildMemberList({ guild, updateGuild }: GuildInfoProps) {
-    const [members, setMembers] = React.useState<Member[]>([]);
-    const [onlineMembers, setOnlineMembers] = React.useState<Member[]>();
+    const [onlineMembers, setOnlineMembers] = React.useState<Member[]>([]);
     const [offlineMembers, setOfflineMembers] = React.useState<Member[]>([]);
     const [isLoadedMembers, setIsLoadedMembers] = React.useState<boolean>(false);
     const [isLoadedOnlineMembers, setIsLoadedOnlineMembers] = React.useState<boolean>(false);
@@ -52,15 +51,30 @@ export default function GuildMemberList({ guild, updateGuild }: GuildInfoProps) 
     }, [socket, guild.members, onlineMembers, offlineMembers]);
 
     React.useEffect(() => {
-        socket.on("online_member", (data) => {
-            // const validMember = guild.members.find(member => member.memberId._id === data);
-            // if (validMember && offlineMembers && onlineMembers) {
-            //     setOfflineMembers(offlineMembers.filter(member => member.memberId._id !== validMember.memberId._id));
-            //     setOnlineMembers([...onlineMembers, validMember]);
-            // }
-            setIsLoadedOnlineMembers(false);
-        });
-    }, [socket, guild.members, onlineMembers, offlineMembers]);
+        socket.on('user_online', (data) => {
+            if (data.guildId === guild._id) {
+                console.log(guild.members);
+                const member = guild.members.find((member) => member.memberId._id === data.memberId);
+                if (member) {
+                    setOnlineMembers((prevMembers) => [...prevMembers, member]);
+                    setOfflineMembers((prevMembers) => prevMembers.filter((member) => member.memberId._id !== data.memberId));
+                }
+            }
+        })
+        socket.on('user_offline', (data) => {
+            if (data.guildId === guild._id) {
+                const member = guild.members.find((member) => member.memberId._id === data.memberId);
+                if (member) {
+                    setOfflineMembers((prevMembers) => [...prevMembers, member]);
+                    setOnlineMembers((prevMembers) => prevMembers.filter((member) => member.memberId._id !== data.memberId));
+                }
+            }
+        })
+        return () => {
+            socket.off("user_online");
+            socket.off("user_offline");
+        }
+    }, [socket, guild._id, guild.members]);
 
     React.useEffect(() => {
         socket.on('user_joined_guild', (data) => {

@@ -1,58 +1,28 @@
-const redisClient = require("../../database/redis.database");
+const redisCommandService = require("./redisCommand.service");
 const userService = require("./user.service");
 
 class OnlineStatusService {
-    constructor() {
-        this.init();
-    }
-
-    async init() {
-        if (!redisClient.isOpen) {
-            await redisClient.connect();  // Connect once when the service is initialized
-        }
-    }
-
     async processUserOnline(userId) {
         const user = await userService.GetUserById(userId);
-        await this.addUser(userId);
-        user.guilds.forEach(guild => {
-            this.addUserToGuild(userId, guild);
+        await redisCommandService.addOnlineUser(userId);
+    
+        const guildIds = user.guilds.map(guild => {
+            redisCommandService.addOnlineUserToGuild(userId, guild);
+            return guild._id.toString();
         });
+    
+        return guildIds;
     }
     async processUserOffline(userId) {
         const user = await userService.GetUserById(userId);
-        await this.removeUser(userId);
+        await redisCommandService.removeOnlineUser(userId);
         user.guilds.forEach(guild => {
-            this.removeUserFromGuild(userId, guild);
+            redisCommandService.removeOnlineUserFromGuild(userId, guild);
         });
-    }
-    async addUser(userId) {
-        await redisClient.set(`online:${userId}`, "");
-    }
-    async removeUser(userId) {
-        await redisClient.del(`online:${userId}`)
-    }
-
-    async addUserToGuild(userId, guildId) {
-        const key = `online:guild:${guildId}`;
-        await redisClient.sAdd(key, userId);
     }
 
     async getListMemberOnline(guildId) {
-        try {
-            const result = await redisClient.sMembers(`online:guild:${guildId}`);
-            console.log(result);
-            return result;
-        }
-        catch (error) {
-            console.error(error);
-            return null;
-        }
-    }
-
-    async removeUserFromGuild(userId, guildId) {
-        const key = `online:guild:${guildId}`;
-        await redisClient.sRem(key, userId);
+        return await redisCommandService.getListMemberOnline(guildId);
     }
 }
 

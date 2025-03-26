@@ -5,13 +5,15 @@ import { useDispatch, useSelector } from "react-redux";
 import GuildMiniCard from "../GuildMiniCard/GuildMiniCard";
 import { Link } from "react-router-dom";
 import { AppDispatch, RootState } from "../../store";
-import { fetchGuilds } from "../../redux/slices/guildsSlice";
+import { fetchGuilds, setGuild, updateGuild } from "../../redux/slices/guildsSlice";
 import { useSnackbar } from "notistack";
+import { useSocket } from "../../context/SocketProvider";
 
 export const GuildList = () => {
     const { guilds, loading, error } = useSelector((state: RootState) => state.guilds);
     const dispatch = useDispatch<AppDispatch>();
     const { enqueueSnackbar } = useSnackbar();
+    const socket = useSocket();
 
     const fetchGuildList = async () => {
         await dispatch(fetchGuilds());
@@ -20,6 +22,15 @@ export const GuildList = () => {
     React.useEffect(() => {
         fetchGuildList();
     }, [dispatch]);
+    
+    React.useEffect(() => {
+        socket.on("guild_updated", (data) => {
+            dispatch(setGuild(data.data));
+        });
+        return () => {
+            socket.off("guild_updated");
+        }
+    }, [dispatch, socket])
 
     React.useEffect(() => {
         if (error) {

@@ -1,6 +1,6 @@
 const MessageModel = require("../../models/message/message.model");
 const AttachmentModel = require("../../models/message/attachment.model");
-const { getSocket } = require("../../utils/socket");
+const { emitMessage } = require("../../utils/socket");
 
 class MessageService {
     async GetMessagesByChannelId(channelId, { limit = 20, before = null }) {
@@ -113,9 +113,7 @@ class MessageService {
                 }
             ]);
 
-            // Emit socket event to users in the same channel
-            const socket = getSocket();
-            socket.to(data.channelId).emit("chat_received", result);
+            emitMessage(data.channelId, result);
 
             return result;
         } catch (error) {

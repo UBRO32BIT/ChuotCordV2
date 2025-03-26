@@ -6,6 +6,7 @@ import { JoinGuildByCode } from "../../services/invite.service";
 
 export interface IGuildsState {
     guilds: Guild[];
+    selectedGuild: Guild | null;
     loading: boolean;
     error: string | null;
 }
@@ -13,6 +14,7 @@ export interface IGuildsState {
 // Initial state
 const initialState: IGuildsState = {
     guilds: [],
+    selectedGuild: null,
     loading: false,
     error: null,
 };
@@ -32,27 +34,13 @@ export const fetchGuildById = createAsyncThunk(
     "guilds/fetchGuildById",
     async (guildId: string, { getState, rejectWithValue }) => {
         const state = getState() as { guilds: IGuildsState };
-
-        // Check if the guild already exists in state
         const existingGuild = state.guilds.guilds.find(guild => guild._id === guildId);
         if (existingGuild) {
             return existingGuild;
         }
 
-        // Fetch from API if not found in state
         try {
             return await GetGuildById(guildId);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-export const createGuild = createAsyncThunk(
-    "guilds/createGuild",
-    async (data: any, { rejectWithValue }) => {
-        try {
-            return await CreateGuild(data);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -64,6 +52,17 @@ export const updateGuild = createAsyncThunk(
     async (data: any, { rejectWithValue }) => {
         try {
             return await UpdateGuild(data.guildId, data);
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const createGuild = createAsyncThunk(
+    "guilds/createGuild",
+    async (data: any, { rejectWithValue }) => {
+        try {
+            return await CreateGuild(data);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -118,6 +117,12 @@ export const guildsSlice = createSlice({
                 state.guilds[index] = { ...state.guilds[index], ...changes };
             }
         },
+        setGuild: (state, action: PayloadAction<Guild>) => {
+            const index = state.guilds.findIndex((guild) => guild._id === action.payload._id);
+            if (index !== -1) {
+                state.guilds[index] = action.payload;
+            }
+        },
         deleteGuild: (state, action: PayloadAction<string>) => {
             state.guilds = state.guilds.filter((guild) => guild._id !== action.payload);
         },
@@ -166,6 +171,6 @@ export const guildsSlice = createSlice({
     },
 });
 
-export const { addGuild, editGuild } = guildsSlice.actions;
+export const { addGuild, editGuild, setGuild } = guildsSlice.actions;
 
 export default guildsSlice.reducer;

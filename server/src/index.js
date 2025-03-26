@@ -2,7 +2,8 @@
 const app = require('./app');
 const config = require('./config/config');
 const logger = require('./config/logger');
-const { createServer } = require('https');
+const http = require("http");
+const https = require("https");
 const { createSocket } = require('./utils/socket');
 const connectToMongoDB = require('./database/mongo.database');
 const fs = require('fs');
@@ -11,7 +12,8 @@ let server;
 var key = fs.readFileSync(config.sslKeyPath);
 var cert = fs.readFileSync(config.sslCertPath);
 var options = { key: key, cert: cert };
-const httpServer = createServer(options, app);
+const useHttps = config.useHttps === "true";
+const httpServer = useHttps ? https.createServer(options, app) : http.createServer(app);
 
 //Create socket server
 createSocket(httpServer);
@@ -31,7 +33,7 @@ const exitHandler = () => {
 };
 const unexpectedErrorHandler = (error) => {
   logger.error(error);
-  exitHandler();
+  //exitHandler();
 };
 
 process.on('uncaughtException', unexpectedErrorHandler);

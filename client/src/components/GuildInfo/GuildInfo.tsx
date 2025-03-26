@@ -20,7 +20,7 @@ export default function GuildInfo({ guild, updateGuild }: GuildInfoProps) {
             <GuildMemberList guild={guild} updateGuild={updateGuild} />
         </Box>
         <Box sx={{ textAlign: "left" }}>
-            <ChannelList guild={guild} updateGuild={updateGuild} />
+            <ChannelList/>
         </Box>
         <Divider />
         <Box>

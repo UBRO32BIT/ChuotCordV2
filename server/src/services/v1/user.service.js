@@ -98,7 +98,6 @@ class UserService {
                 throw new ApiError(ErrorCodes.USER_NOT_FOUND);
             }
     
-            // Update other fields if provided
             if (data.profilePicture) {
                 user.profilePicture = data.profilePicture;
             }

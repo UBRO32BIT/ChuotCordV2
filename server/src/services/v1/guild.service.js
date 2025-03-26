@@ -4,6 +4,7 @@ const GuildPermissions = require("../../models/guild/guildPermission.model");
 const ErrorCodes = require("../../errors/errorCodes");
 const MessageService = require("./message.service");
 const ApiError = require("../../errors/ApiError");
+const { emitGuildUpdated } = require("../../utils/socket");
 
 class GuildService {
     async GetGuilds() {
@@ -44,7 +45,7 @@ class GuildService {
                 path: 'members.roles',
                 select: '_id name color permissionCodes displayType'
             });
-            return guild
+            return guild;
         }
         catch (error) {
             console.error(error);
@@ -84,7 +85,9 @@ class GuildService {
     async AddRole(guildId, data) {
         try {
             const role = new GuildRoles({ ...data, guildId: guildId });
-            return role.save();
+            const addedRole = role.save();
+            this.HandleUpdateGuildSocket(guildId);
+            return addedRole;
         }
         catch (error) {
             throw error;
@@ -101,6 +104,7 @@ class GuildService {
                     $set: { 'members.$.roles': Array.isArray(roleIds) ? roleIds : [roleIds] },
                 }
             );
+            this.HandleUpdateGuildSocket(guildId);
             return await this.GetGuildById(guildId);
         }
         catch (error) {
@@ -147,6 +151,7 @@ class GuildService {
             }
     
             await guild.save();
+            this.HandleUpdateGuildSocket(guildId);
             return await this.GetGuildById(guildId);
         } catch (error) {
             throw new Error(`Failed to update guild: ${error.message}`);
@@ -159,6 +164,7 @@ class GuildService {
                 { _id: guildId },
                 { $addToSet: { channels: channelId } }
             );
+            this.HandleUpdateGuildSocket(guildId);
         }
         catch (error) {
             throw error;
@@ -185,6 +191,7 @@ class GuildService {
             
             guild.owner = newOwnerId;
             await guild.save();
+            this.HandleUpdateGuildSocket(guildId);
         }
         catch (error) {
             throw error;
@@ -192,14 +199,12 @@ class GuildService {
     }
     async AddMember(guildId, memberId) {
         try {
-            const guild = await GuildModel.findById(guildId);
-            
-            await GuildModel.findByIdAndUpdate(
+            const guild = await GuildModel.findByIdAndUpdate(
                 guildId,
                 { $push: { members: { memberId: memberId } } },
                 { new: true, useFindAndModify: false }
             );
-
+            this.HandleUpdateGuildSocket(guildId);
             
             if (guild.logChannel && guild.enableJoinLog) {
                 await MessageService.AddLogMessage(memberId, guild.logChannel, 'join');
@@ -219,6 +224,7 @@ class GuildService {
             if (guild.logChannel && guild.enableJoinLog) {
                 await MessageService.AddLogMessage(memberId, guild.logChannel, 'leave');
             }
+            this.HandleUpdateGuildSocket(guildId);
         }
         catch (error) {
             throw error;
@@ -258,6 +264,7 @@ class GuildService {
             if (guild.logChannel && guild.enableJoinLog) {
                 await MessageService.AddLogMessage(memberId, guild.logChannel, 'ban');
             }
+            this.HandleUpdateGuildSocket(guildId);
     
             return { success: true, message: 'Member has been banned successfully' };
         } catch (error) {
@@ -271,6 +278,16 @@ class GuildService {
             const guild = await GuildModel.findById(id);
             const result = await guild.delete();
             return result;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+
+    async HandleUpdateGuildSocket(guildId) {
+        try {
+            const guild = await this.GetGuildById(guildId);
+            emitGuildUpdated(guild);
         }
         catch (error) {
             throw error;

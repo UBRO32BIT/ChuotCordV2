@@ -81,4 +81,5 @@ module.exports = {
   uploadsPath: envVars.UPLOADS_DIR,
   corsOriginDevelopment: envVars.CORS_ORIGIN_DEVELOPMENT,
   corsOriginProduction: envVars.CORS_ORIGIN_PRODUCTION,
+  useHttps: envVars.USE_HTTPS,
 };

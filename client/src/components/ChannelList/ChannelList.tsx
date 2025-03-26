@@ -7,7 +7,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TagIcon from '@mui/icons-material/Tag';
 import AddIcon from '@mui/icons-material/Add';
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import Modal from "@mui/material/Modal";
 import TextField from "@mui/material/TextField";
@@ -19,21 +19,24 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import { FormControl } from "@mui/material";
+import { AppDispatch } from "../../store";
+import { useDispatch } from "react-redux";
+import { fetchGuildById } from "../../redux/slices/guildsSlice";
 
 const createChannelSchema = yup.object().shape({
     name: yup.string()
         .required("Channel name is required!"),
 })
-interface GuildInfoProps {
-    guild: Guild;
-    updateGuild: (updatedAttributes: Partial<Guild>) => void;
-}
-export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
+
+export default function ChannelList() {
     const [channels, setChannels] = React.useState<ChannelPartial[]>();
+    const [guild, setGuild] = React.useState<Guild>();
     const [openCreateChannelModal, setOpenCreateChannelModal] = React.useState<boolean>(false);
     const [createChannelType, setCreateChannelType] = React.useState<string>("text");
     const [uploading, setUploading] = React.useState<boolean>(false);
+    const { guildId } = useParams();
     const { enqueueSnackbar } = useSnackbar();
+    const dispatch = useDispatch<AppDispatch>();
     const {
         register: registerCreateChannel,
         handleSubmit: handleCreateChannelSubmit,
@@ -49,22 +52,15 @@ export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
     }
     const onCreateChannelSubmit = async (event: any) => {
         try {
-            setUploading(true);
-            const data = {
-                name: event.name,
-                type: createChannelType,
+            if (guild) {
+                setUploading(true);
+                const data = {
+                    name: event.name,
+                    type: createChannelType,
+                }
+                await CreateChannel(guild._id, data);
+                enqueueSnackbar(`Create channel successfully`, { variant: "success" });
             }
-            const result = await CreateChannel(guild._id, data);
-            const newChannel: ChannelPartial = {
-                _id: result._id,
-                name: result.name,
-                type: result.type,
-            }
-            setChannels([...(channels || []), newChannel]);
-            const updatedChannelList = [...(channels || []), newChannel];
-            guild.channels = updatedChannelList;
-            updateGuild(guild);
-            enqueueSnackbar(`Create channel successfully`, { variant: "success" });
         }
         catch (error: any) {
             console.log(error);
@@ -75,9 +71,16 @@ export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
             setOpenCreateChannelModal(false);
         }
     }
-    const handleVoiceChannelClick = (channelId: string) => {
-        console.log(`Voice channel clicked: ${channelId}`);
-    }
+
+    const fetchGuildDetails = async (guildId: string) => {
+        try {
+            const result = await dispatch(fetchGuildById(guildId));
+            setGuild(result.payload);
+        } catch (error: any) {
+            enqueueSnackbar(`${error.message}`, { variant: "error" });
+        }
+    };
+
     const style = {
         position: 'absolute' as 'absolute',
         top: '50%',
@@ -91,7 +94,15 @@ export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
     };
 
     React.useEffect(() => {
-        setChannels(guild.channels);
+        if (guildId) {
+            fetchGuildDetails(guildId);
+        }
+    }, [guildId]);
+
+    React.useEffect(() => {
+        if (guild) {
+            setChannels(guild.channels);
+        }
     }, [guild])
 
     return <Box>
@@ -164,9 +175,6 @@ export default function ChannelList({ guild, updateGuild }: GuildInfoProps) {
                 <Typography id="modal-modal-title" variant="h6" component="h2">
                     New Channel
                 </Typography>
-                {/* <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                        Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-                    </Typography> */}
                 <form onSubmit={handleCreateChannelSubmit(onCreateChannelSubmit)}>
                     <TextField
                         margin="normal"
