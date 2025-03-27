@@ -52,7 +52,7 @@ export default function ChannelDetails() {
             {channel && guildId && (
                 <Box
                     sx={{
-                        height: '100vh', // Full height of the viewport
+                        height: '100vh',
                         display: "flex",
                         flexDirection: "column",
                         overflow: "hidden",
@@ -66,7 +66,7 @@ export default function ChannelDetails() {
                             justifyContent: "space-between",
                             gap: 1,
                             p: 1,
-                            flexShrink: 0, // Prevent shrinking
+                            flexShrink: 0,
                         }}
                     >
                         <Box
@@ -88,8 +88,8 @@ export default function ChannelDetails() {
                     {/* Message List Section */}
                     <Box
                         sx={{
-                            flex: 1, // Take up the remaining space
-                            overflowY: "auto", // Enable scrolling for the message list
+                            flex: 1,
+                            overflowY: "auto",
                             overflowWrap: "break-word",
                         }}
                     >
@@ -99,8 +99,8 @@ export default function ChannelDetails() {
                     {/* Footer Section */}
                     <Box
                         sx={{
-                            flexShrink: 0, // Prevent shrinking
-                            borderTop: "1px solid rgba(0, 0, 0, 0.12)", // Optional styling
+                            flexShrink: 0,
+                            borderTop: "1px solid rgba(0, 0, 0, 0.12)",
                         }}
                     >
                         <MessageForm guildId={guildId} {...channel} />

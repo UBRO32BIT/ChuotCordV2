@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import MessageComponent from "../Message/MessageComponent";
 import { GetMessageByChannelId } from "../../services/message.service";
 import { useParams } from "react-router-dom";
+import MessageLoading from "../MessageLoading";
 
 export default function MessageList() {
     const { guildId, channelId } = useParams();
@@ -20,15 +21,14 @@ export default function MessageList() {
     const newMessageCount = React.useRef(0);
     const lastMessageTime = React.useRef<number>(0);
 
-    // Function to fetch messages, with cursor (optional)
     const fetchMessages = async (before?: string) => {
         if (guildId && channelId) {
             try {
+                setLoadingOlderMessages(true);
                 const result = await GetMessageByChannelId(guildId, channelId, before);
                 if (result.length === 0) {
-                    setHasMoreMessages(false); // No more messages to load
+                    setHasMoreMessages(false);
                 } else {
-                    // Preserve scroll position when loading older messages
                     const prevScrollHeight = messagesRef.current?.scrollHeight || 0;
                     setMessages((prev) => [...result, ...prev]);
                     setTimeout(() => {
@@ -51,8 +51,7 @@ export default function MessageList() {
         if (messagesRef.current) {
             // Check if scrolled to the top
             if (messagesRef.current.scrollTop < 10 && hasMoreMessages && !loadingOlderMessages) {
-                setLoadingOlderMessages(true);
-                const oldestMessageId = messages[0]?._id; // Get the ID of the oldest message
+                const oldestMessageId = messages[0]?._id;
                 fetchMessages(oldestMessageId);
             }
         }
@@ -135,11 +134,13 @@ export default function MessageList() {
                 textAlign: "left",
                 pl: 1,
                 overflowY: "auto",
-                height: "100%", // Adjust height as per your layout
+                height: "100%",
             }}
         >
             {loadingOlderMessages && (
-                <Box sx={{ textAlign: "center", py: 1 }}>Loading...</Box>
+                <Box sx={{ textAlign: "center", py: 1 }}>
+                    <MessageLoading/>
+                </Box>
             )}
             {messages.map((message) => (
                 <MessageComponent key={message._id} {...message} />

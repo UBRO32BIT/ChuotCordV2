@@ -17,7 +17,6 @@ const SocketContext = createContext(socket);
 
 export const SocketProvider = ({ children }: any) => {
   React.useEffect(() => {
-    // Update the auth header on reconnect
     socket.on("reconnect_attempt", () => {
       socket.auth = {
         token: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -25,7 +24,7 @@ export const SocketProvider = ({ children }: any) => {
     });
 
     return () => {
-      socket.off("reconnect_attempt"); // Cleanup to avoid memory leaks
+      socket.off("reconnect_attempt");
     };
   }, []);
   

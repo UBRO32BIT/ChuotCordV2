@@ -14,11 +14,14 @@ import { RefreshToken } from '../../services/auth.service';
 import { setAccessToken } from '../../utils/localStorage';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
+import { ReconnectManager } from '../../utils/reconnect';
 import { Helmet } from 'react-helmet';
 
 export default function Chat() {
     const socket = useSocket();
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+    const [isReconnecting, setIsReconnecting] = React.useState(false);
+    const reconnectManager = React.useRef(new ReconnectManager());
     const isDarkMode = useSelector((state: RootState) => state.darkMode.isDarkMode);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -35,49 +38,88 @@ export default function Chat() {
         }
       }, [isDarkMode]);
 
-      const fetchSocketStatus = () => {
-        if (!socket.connected) {
-            const snackbarId = enqueueSnackbar(`Socket disconnected`, {
+      const fetchSocketStatus = React.useCallback(() => {
+        if (!socket.connected && !isReconnecting) {
+            const snackbarId = enqueueSnackbar('Socket disconnected', {
                 variant: "error",
                 preventDuplicate: true,
+                persist: true,
                 action: (snackbarId) => (
-                    <Button onClick={() => handleReconnect(snackbarId)}>
-                        <Typography color={"white"}>Reconnect</Typography>
+                    <Button 
+                        onClick={() => handleReconnect()}
+                        disabled={isReconnecting || !reconnectManager.current.canRetry()}
+                    >
+                        <Typography color="white">
+                            {isReconnecting ? 'Reconnecting...' : 'Reconnect'}
+                        </Typography>
                     </Button>
-                ),
+                )
             });
         }
-    };
+    }, [socket, isReconnecting]);
 
-    const handleReconnect = async (snackbarId: any) => {
+    const handleReconnect = React.useCallback(async () => {
+        if (!reconnectManager.current.canRetry() || isReconnecting) {
+            enqueueSnackbar('Maximum reconnection attempts reached. Please refresh the page.', 
+                { variant: 'error' });
+            return;
+        }
+
         try {
+            setIsReconnecting(true);
+            const delay = reconnectManager.current.getDelay();
+            const attempts = reconnectManager.current.getAttempts();
+            
+            enqueueSnackbar(`Attempting to reconnect in ${delay/1000}s... (Attempt ${attempts}/5)`, 
+                { variant: 'info' });
+
+            await new Promise(resolve => setTimeout(resolve, delay));
+
             const accessToken = await RefreshToken();
             setAccessToken(accessToken);
             socket.auth = { token: "Bearer " + accessToken };
-
-            socket.off("connect");
-            socket.off("connect_error");
-
-            socket.on("connect", () => {
-                closeSnackbar(snackbarId);
-                enqueueSnackbar("Reconnected successfully", { variant: "success", preventDuplicate: true });
-            });
-
-            socket.on("connect_error", (err) => {
-                enqueueSnackbar(`Reconnect failed: ${err.message}`, { variant: "error", preventDuplicate: true });
-            });
-
             socket.connect();
-        }
-        catch (error) {
+
+        } catch (error) {
             console.error("Reconnect failed", error);
+            if (reconnectManager.current.canRetry()) {
+                handleReconnect();
+            }
+        } finally {
+            setIsReconnecting(false);
         }
-    };
+    }, [socket, enqueueSnackbar, isReconnecting]);
 
     React.useEffect(() => {
-        const intervalId = setInterval(fetchSocketStatus, 3000);
-        return () => clearInterval(intervalId);
-    }, []);
+        socket.on("connect", () => {
+            if (reconnectManager.current.getAttempts() > 0) {
+                enqueueSnackbar("Reconnected to the server", { variant: "success" });
+            }
+            reconnectManager.current.reset();
+            setIsReconnecting(false);
+        });
+
+        socket.on("disconnect", (reason) => {
+            console.log("Socket disconnected:", reason);
+            if (reason === "io server disconnect" || reason === "io client disconnect") {
+                // Server/client initiated the disconnect, don't reconnect automatically
+                return;
+            }
+            handleReconnect();
+        });
+
+        socket.on("connect_error", (error) => {
+            console.log("Connection error:", error);
+            handleReconnect();
+        });
+
+        return () => {
+            socket.off("connect");
+            socket.off("disconnect");
+            socket.off("connect_error");
+            reconnectManager.current.reset();
+        };
+    }, [socket, handleReconnect, enqueueSnackbar]);
 
     const sidebar = (
         <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
