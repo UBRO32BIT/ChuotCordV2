@@ -13,6 +13,8 @@ services:
       - ./server:/usr/src/server
       - server_node_modules:/usr/src/server/node_modules
       - ./certs:/usr/src/certificates
+    env_file:
+      - ./server/.env
     environment:
       CERT_PATH: /usr/src/certificates
     deploy:
@@ -23,6 +25,8 @@ services:
         reservations:
           cpus: "0.25"
           memory: "128M"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   client:
     image: ubro3/chuotcord-client-service:latest
@@ -34,6 +38,8 @@ services:
       - ./client:/usr/src/client
       - client_node_modules:/usr/src/client/node_modules
       - ./certs:/usr/src/certificates
+    env_file:
+      - ./client/.env
     environment:
       CERT_PATH: /usr/src/certificates
     deploy:
@@ -44,6 +50,8 @@ services:
         reservations:
           cpus: "0.25"
           memory: "768M"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   nginx:
     image: nginx:latest
@@ -61,6 +69,8 @@ services:
         limits:
           cpus: "0.25"
           memory: "64M"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   redis:
     image: redis
@@ -79,6 +89,8 @@ services:
         limits:
           cpus: "0.25"
           memory: "128M"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
 
   mongodb:
     image: mongo:latest
@@ -98,6 +110,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+      - WATCHTOWER_INCLUDE_STOPPED=true
+      - WATCHTOWER_LABEL_ENABLE=true
+      - TZ=Asia/Ho_Chi_Minh
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
 
 volumes:
   mongo_data:

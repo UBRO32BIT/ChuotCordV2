@@ -54,7 +54,6 @@ jobs:
           echo "CORS_ORIGIN_DEVELOPMENT=${{ secrets.CORS_ORIGIN_DEVELOPMENT }}" >> server/.env
           echo "CORS_ORIGIN_PRODUCTION=${{ secrets.CORS_ORIGIN_PRODUCTION }}" >> server/.env
 
-
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -96,10 +95,10 @@ jobs:
           ssh -i private_key $SSH_USERNAME@$SSH_HOST << 'EOF'
             sudo -s
             cd /ChuotCordV2
-            
-            docker-compose down --remove-orphans
-            docker image prune -a -f
+            git pull origin master
             
             docker-compose pull
-            docker-compose up -d --force-recreate
+            docker-compose up -d
+            
+            echo "Deployment complete. Future image updates will be automatically applied by Watchtower."
           EOF
