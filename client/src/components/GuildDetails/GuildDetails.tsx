@@ -14,6 +14,7 @@ import { AppDispatch } from "../../store";
 import { fetchGuildById } from "../../redux/slices/guildsSlice";
 import InfoIcon from "@mui/icons-material/Info";
 import VoiceChannelDetails from "../VoiceChannelDetails/VoiceChannelDetails";
+import VoiceChannelDetailsV2 from "../VoiceChannelDetailsV2";
 
 const action = (snackbarId: any) => (
   <>
@@ -81,7 +82,7 @@ export default function GuildDetails() {
               <Routes>
                 <Route path="/" element={<GuildOverview />} />
                 <Route path="/channels/:channelId" element={<ChannelDetails />} />
-                <Route path="/voice-channels/:channelId" element={<VoiceChannelDetails />} />
+                <Route path="/voice-channels/:channelId" element={<VoiceChannelDetailsV2 />} />
               </Routes>
             </Box>
           </Grid>

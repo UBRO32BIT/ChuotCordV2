@@ -17,6 +17,7 @@ const routes = require('./routes/v1');
 const ApiError = require('./errors/ApiError');
 const errorHandler = require('./controllers/v1/error.controller');
 const ErrorCodes = require('./errors/errorCodes');
+const logger = require('./config/logger');
 
 const app = express();
 
@@ -77,6 +78,7 @@ app.use('/uploads', express.static(config.uploadsPath, {
 
 // send back a 404 error for any unknown api request
 app.use((req, res, next) => {
+  logger.info(`Resource not found: ${req.method} ${req.originalUrl}`);
   next(new ApiError(ErrorCodes.RESOURCE_NOT_FOUND));
 });
 

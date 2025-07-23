@@ -1,309 +1,323 @@
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Avatar, Button, FormControl, FormLabel, TextField, Typography } from "@mui/material";
-import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid";
-import React, { ChangeEvent, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useSelector } from "react-redux";
-import * as yup from "yup";
-import { changePassword, updateInformation } from "../../services/user.service";
-import { useSnackbar } from "notistack";
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import {
+  Box,
+  Avatar,
+  Button,
+  TextField,
+  Typography,
+  Divider,
+  IconButton,
+  Paper,
+  Tab,
+  Tabs,
+  useTheme,
+  alpha,
+} from '@mui/material';
+import { useSnackbar } from 'notistack';
+import { changePassword, updateInformation } from '../../services/user.service';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
 
-const updateProfileSchema = yup.object().shape({
-    description: yup.string()
-        .max(1000, "Description cannot exceed 1000 characters!"),
-})
-const updateUserInformationSchema = yup.object().shape({
-    email: yup.string().email("Invalid email!").required("Email is required!"),
-    phoneNumber: yup.string().matches(/^[0-9]{10}$/, "Invalid phone number!").required("Phone number is required!"),
+// Validation schemas
+const profileSchema = yup.object().shape({
+  description: yup.string().max(1000, 'Description cannot exceed 1000 characters'),
 });
-const changePasswordSchema = yup.object().shape({
-    currentPassword: yup.string().required("Current password is required!"),
-    newPassword: yup.string().required("New password is required!"),
-    repeatPassword: yup.string().oneOf([yup.ref("newPassword"), undefined], "Passwords must match!"),
+
+const userInfoSchema = yup.object().shape({
+  email: yup.string().email('Invalid email').required('Email is required'),
+  phoneNumber: yup.string().matches(/^[0-9]{10}$/, 'Invalid phone number').required('Phone number is required'),
 });
+
+const passwordSchema = yup.object().shape({
+  currentPassword: yup.string().required('Current password is required'),
+  newPassword: yup.string()
+    .min(8, 'Password must be at least 8 characters')
+    .required('New password is required'),
+  repeatPassword: yup.string()
+    .oneOf([yup.ref('newPassword')], 'Passwords must match')
+    .required('Please confirm your password'),
+});
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`settings-tabpanel-${index}`}
+      aria-labelledby={`settings-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 export default function UserSettings() {
-    const user = useSelector((state: any) => state.user.user);
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-    const [guildImageSrc, setGuildImageSrc] = React.useState<string>('');
-    const [profilePicture, setProfilePicture] = React.useState<File>();
-    const [isProfileChanged, setIsProfileChanged] = useState(false);
+  const theme = useTheme();
+  const user = useSelector((state: any) => state.user.user);
+  const { enqueueSnackbar } = useSnackbar();
+  const [activeTab, setActiveTab] = useState(0);
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>(user.profilePicture || '');
 
-    const {
-        register: registerUpdateProfile,
-        handleSubmit: handleUpdateProfile,
-        setValue: setUpdateGuildValue,
-        watch: watchUpdateProfile,
-        formState: { errors: updateGuildErrors }
-    } = useForm({
-        resolver: yupResolver(updateProfileSchema),
-        defaultValues: {
-            description: user.description,
-        }
-    })
+  // Profile form
+  const {
+    register: registerProfile,
+    handleSubmit: handleProfileSubmit,
+    formState: { errors: profileErrors },
+    watch: watchProfile,
+  } = useForm({
+    resolver: yupResolver(profileSchema),
+    defaultValues: {
+      description: user.description || '',
+    },
+  });
 
-    const {
-        register: registerUserInformation,
-        handleSubmit: handleUserInformationSubmit,
-        setValue: setUserInformationValue,
-        formState: { errors: userInformationErrors }
-    } = useForm({
-        resolver: yupResolver(updateUserInformationSchema),
-    });
-    const {
-        register: registerLogin,
-        handleSubmit: handleLoginSubmit,
-        setValue,
-        formState: { errors: loginErrors },
-    } = useForm({
-        resolver: yupResolver(changePasswordSchema),
-    });
+  // User info form
+  const {
+    register: registerUserInfo,
+    handleSubmit: handleUserInfoSubmit,
+    formState: { errors: userInfoErrors },
+  } = useForm({
+    resolver: yupResolver(userInfoSchema),
+    defaultValues: {
+      email: user.email || '',
+      phoneNumber: user.phoneNumber || '',
+    },
+  });
 
-    const watchDescription = watchUpdateProfile("description");
+  // Password form
+  const {
+    register: registerPassword,
+    handleSubmit: handlePasswordSubmit,
+    formState: { errors: passwordErrors },
+    reset: resetPassword,
+  } = useForm({
+    resolver: yupResolver(passwordSchema),
+  });
 
-    useEffect(() => {
-        if (watchDescription !== user.description || profilePicture) {
-            setIsProfileChanged(true);
-        } else {
-            setIsProfileChanged(false);
-        }
-    }, [watchDescription, profilePicture, user.description]);
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
 
-    const handleProfilePictureChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setProfilePicture(e.target.files[0]);
-        }
-    };
+  const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setProfilePicture(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
-    const onUserProfileUpdate = async (data: any) => {
-        try {
-            const formData = new FormData();
-            formData.append("profileDescription", data.description);
-            if (profilePicture) {
-                formData.append("profilePicture", profilePicture);
-            }
-            await updateInformation(formData);
-            enqueueSnackbar("User profile updated successfully!", { variant: "success" });
-            setIsProfileChanged(false); // Reset the change detection after successful update
-        } catch (error: any) {
-            enqueueSnackbar(error.message || "Failed to update user information.", { variant: "error" });
-        }
-    };
+  const onProfileSubmit = async (data: any) => {
+    try {
+      const formData = new FormData();
+      formData.append('profileDescription', data.description);
+      if (profilePicture) {
+        formData.append('profilePicture', profilePicture);
+      }
+      await updateInformation(formData);
+      enqueueSnackbar('Profile updated successfully', { variant: 'success' });
+    } catch (error: any) {
+      enqueueSnackbar(error.message || 'Failed to update profile', { variant: 'error' });
+    }
+  };
 
-    const onChangePassword = async (data: any) => {
-        try {
-            await changePassword(data.currentPassword, data.newPassword);
-            enqueueSnackbar("Password changed successfully!", { variant: "success" });
-        } catch (error: any) {
-            enqueueSnackbar(error.message || "Failed to change password.", { variant: "error" });
-        }
-    };
+  const onUserInfoSubmit = async (data: any) => {
+    try {
+      const formData = new FormData();
+      formData.append('email', data.email);
+      formData.append('phoneNumber', data.phoneNumber);
+      await updateInformation(formData);
+      enqueueSnackbar('User information updated successfully', { variant: 'success' });
+    } catch (error: any) {
+      enqueueSnackbar(error.message || 'Failed to update user information', { variant: 'error' });
+    }
+  };
 
-    React.useEffect(() => {
-        if (profilePicture) {
-            const objectUrl = URL.createObjectURL(profilePicture);
-            setGuildImageSrc(objectUrl);
+  const onPasswordSubmit = async (data: any) => {
+    try {
+      await changePassword(data.currentPassword, data.newPassword);
+      enqueueSnackbar('Password changed successfully', { variant: 'success' });
+      resetPassword();
+    } catch (error: any) {
+      enqueueSnackbar(error.message || 'Failed to change password', { variant: 'error' });
+    }
+  };
 
-            // Clean up the object URL when the component unmounts or the file changes
-            return () => URL.revokeObjectURL(objectUrl);
-        } else if (user.profilePicture) {
-            setGuildImageSrc(user.profilePicture);
-        }
-    }, [user, profilePicture])
+  return (
+    <Box sx={{ 
+      maxWidth: '800px', 
+      mx: 'auto', 
+      p: 3,
+      backgroundColor: theme.palette.background.default,
+      borderRadius: 2,
+      boxShadow: theme.shadows[1]
+    }}>
+      <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
+        User Settings
+      </Typography>
 
-    return <Grid container sx={{ height: "100vh" }}>
-        <Grid item md={1}></Grid>
-        <Grid
-            item
-            md={10}
-            sx={{
-                display: "flex",
-                flexDirection: "column",
-                height: "100vh",
-            }}
-        >
-            <Box sx={{
-                textAlign: "start"
-            }}>
-                <Typography variant="h2">Profile</Typography>
-                <form onSubmit={handleUpdateProfile(onUserProfileUpdate)}>
-                    <Box sx={{
-                        py: 1,
-                        rowGap: 1,
-                    }}>
-                        <Avatar
-                            src={guildImageSrc}
-                            alt="Profile picture"
-                            sx={{ width: 64, height: 64 }}
-                        />
-                        <Box sx={{
-                            pb: 3
-                        }}>
-                            <input
-                                type="file"
-                                onChange={handleProfilePictureChange}
-                                accept="image/*"
-                            />
-                            <div>{profilePicture && `${profilePicture.name} - ${profilePicture.type}`}</div>
-                        </Box>
-                        <TextField
-                            id="description"
-                            label="Description"
-                            fullWidth
-                            variant="outlined"
-                            error={!!updateGuildErrors.description}
-                            helperText={updateGuildErrors.description?.message}
-                            {...registerUpdateProfile("description")}
-                            defaultValue={user.description}
-                        />
-                    </Box>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={!isProfileChanged}
-                    >
-                        Confirm changes
-                    </Button>
-                </form>
-            </Box>
-            <Box sx={{
-                textAlign: "start"
-            }}>
-                <Typography variant="h2">User information</Typography>
-                {user.isEmailVerified ? (
-                    <Typography variant="h6">Email is verified</Typography>
-                ) : (
-                    <Box sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                    }}>
-                        <Typography variant="h6">Email is not verified</Typography>
-                        <Button variant="contained" size="small">Verify now</Button>
-                    </Box>
-                )}
-                <Box
-                    component="form"
-                    onSubmit={handleUserInformationSubmit(onUserProfileUpdate)}
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        textAlign: "start",
-                        width: "100%",
-                        gap: 2,
-                    }}
+      <Tabs
+        value={activeTab}
+        onChange={handleTabChange}
+        sx={{
+          borderBottom: 1,
+          borderColor: 'divider',
+          '& .MuiTab-root': {
+            textTransform: 'none',
+            fontWeight: 500,
+          },
+        }}
+      >
+        <Tab label="My Account" />
+        <Tab label="User Profile" />
+        <Tab label="Password" />
+      </Tabs>
+
+      <TabPanel value={activeTab} index={0}>
+        <Paper sx={{ p: 3, backgroundColor: alpha(theme.palette.background.paper, 0.6) }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <Avatar
+              src={previewUrl}
+              sx={{ width: 80, height: 80, mr: 2 }}
+            />
+            <Box>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="profile-picture-input"
+                type="file"
+                onChange={handleProfilePictureChange}
+              />
+              <label htmlFor="profile-picture-input">
+                <Button
+                  variant="outlined"
+                  component="span"
+                  startIcon={<EditIcon />}
                 >
-                    <FormControl>
-                        <FormLabel htmlFor="email">Email</FormLabel>
-                        <TextField
-                            fullWidth
-                            id="email"
-                            type="email"
-                            autoFocus
-                            variant="outlined"
-                            error={!!loginErrors.currentPassword}
-                            helperText={loginErrors.currentPassword?.message}
-                            color={loginErrors.currentPassword ? "error" : "primary"}
-                            defaultValue={user.email}
-                            {...registerUserInformation("email")}
-                        />
-                    </FormControl>
-                    <FormControl>
-                        <FormLabel htmlFor="phoneNumber">Phone number</FormLabel>
-                        <TextField
-                            fullWidth
-                            type="tel"
-                            id="phoneNumber"
-                            autoFocus
-                            variant="outlined"
-                            error={!!loginErrors.newPassword}
-                            helperText={loginErrors.newPassword?.message}
-                            defaultValue={user.phoneNumber}
-                            {...registerUserInformation("phoneNumber")}
-                        />
-                    </FormControl>
-
-                    <Button
-                        type="submit"
-                        color="primary"
-                        variant="contained"
-                        style={{ margin: "8px 0" }}
-                        fullWidth
-                    >
-                        Update
-                    </Button>
-                </Box>
+                  Change Avatar
+                </Button>
+              </label>
             </Box>
-            <Box sx={{
-                textAlign: "start"
-            }}>
-                <Typography variant="h2">Change password</Typography>
-                <Box
-                    component="form"
-                    onSubmit={handleLoginSubmit(onChangePassword)}
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        textAlign: "start",
-                        width: "100%",
-                        gap: 2,
-                    }}
-                >
-                    <FormControl>
-                        <FormLabel htmlFor="currentPassword">Current password</FormLabel>
-                        <TextField
-                            fullWidth
-                            id="currentPassword"
-                            type="password"
-                            autoFocus
-                            variant="outlined"
-                            error={!!loginErrors.currentPassword}
-                            helperText={loginErrors.currentPassword?.message}
-                            color={loginErrors.currentPassword ? "error" : "primary"}
-                            {...registerLogin("currentPassword")}
-                        />
-                    </FormControl>
-                    <FormControl>
-                        <FormLabel htmlFor="newPassword">New password</FormLabel>
-                        <TextField
-                            fullWidth
-                            type="password"
-                            id="newPassword"
-                            autoFocus
-                            variant="outlined"
-                            error={!!loginErrors.newPassword}
-                            helperText={loginErrors.newPassword?.message}
-                            {...registerLogin("newPassword")}
-                        />
-                    </FormControl>
-                    <FormControl>
-                        <FormLabel htmlFor="repeatPassword">Repeat new password</FormLabel>
-                        <TextField
-                            fullWidth
-                            type="password"
-                            id="repeatPassword"
-                            autoFocus
-                            variant="outlined"
-                            error={!!loginErrors.repeatPassword}
-                            helperText={loginErrors.repeatPassword?.message}
-                            {...registerLogin("repeatPassword")}
-                        />
-                    </FormControl>
+          </Box>
 
-                    <Button
-                        type="submit"
-                        color="primary"
-                        variant="contained"
-                        style={{ margin: "8px 0" }}
-                        fullWidth
-                    >
-                        Change password
-                    </Button>
-                </Box>
-            </Box>
-        </Grid>
-        <Grid item md={1}></Grid>
-    </Grid>
+          <form onSubmit={handleUserInfoSubmit(onUserInfoSubmit)}>
+            <TextField
+              fullWidth
+              label="Email"
+              variant="outlined"
+              margin="normal"
+              error={!!userInfoErrors.email}
+              helperText={userInfoErrors.email?.message?.toString()}
+              {...registerUserInfo('email')}
+            />
+            <TextField
+              fullWidth
+              label="Phone Number"
+              variant="outlined"
+              margin="normal"
+              error={!!userInfoErrors.phoneNumber}
+              helperText={userInfoErrors.phoneNumber?.message?.toString()}
+              {...registerUserInfo('phoneNumber')}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              sx={{ mt: 2 }}
+              startIcon={<SaveIcon />}
+            >
+              Save Changes
+            </Button>
+          </form>
+        </Paper>
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={1}>
+        <Paper sx={{ p: 3, backgroundColor: alpha(theme.palette.background.paper, 0.6) }}>
+          <form onSubmit={handleProfileSubmit(onProfileSubmit)}>
+            <TextField
+              fullWidth
+              label="About Me"
+              variant="outlined"
+              multiline
+              rows={4}
+              margin="normal"
+              error={!!profileErrors.description}
+              helperText={profileErrors.description?.message}
+              {...registerProfile('description')}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              sx={{ mt: 2 }}
+              startIcon={<SaveIcon />}
+            >
+              Save Profile
+            </Button>
+          </form>
+        </Paper>
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={2}>
+        <Paper sx={{ p: 3, backgroundColor: alpha(theme.palette.background.paper, 0.6) }}>
+          <form onSubmit={handlePasswordSubmit(onPasswordSubmit)}>
+            <TextField
+              fullWidth
+              label="Current Password"
+              type="password"
+              variant="outlined"
+              margin="normal"
+              error={!!passwordErrors.currentPassword}
+              helperText={passwordErrors.currentPassword?.message}
+              {...registerPassword('currentPassword')}
+            />
+            <TextField
+              fullWidth
+              label="New Password"
+              type="password"
+              variant="outlined"
+              margin="normal"
+              error={!!passwordErrors.newPassword}
+              helperText={passwordErrors.newPassword?.message}
+              {...registerPassword('newPassword')}
+            />
+            <TextField
+              fullWidth
+              label="Confirm New Password"
+              type="password"
+              variant="outlined"
+              margin="normal"
+              error={!!passwordErrors.repeatPassword}
+              helperText={passwordErrors.repeatPassword?.message}
+              {...registerPassword('repeatPassword')}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              sx={{ mt: 2 }}
+              startIcon={<SaveIcon />}
+            >
+              Change Password
+            </Button>
+          </form>
+        </Paper>
+      </TabPanel>
+    </Box>
+  );
 }

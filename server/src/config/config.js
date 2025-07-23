@@ -53,6 +53,7 @@ module.exports = {
   redis: {
     host: envVars.REDIS_HOST,
     port: envVars.REDIS_PORT,
+    password: envVars.REDIS_PASSWORD || '',
   },
   jwt: {
     accessSecret: envVars.JWT_ACCESS_SECRET,

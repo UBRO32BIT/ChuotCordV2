@@ -71,9 +71,7 @@ export const UserMiniCard = () => {
                 <IconButton
                     onClick={handleSettingClick}
                 >
-                    <SettingsIcon sx={{
-                        color: "var(--color-foreground)"
-                    }}/>
+                    <SettingsIcon sx={{color: "var(--icon-primary)"}}/>
                 </IconButton>
                 <Menu
                     id="basic-menu"

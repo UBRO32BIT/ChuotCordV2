@@ -26,7 +26,7 @@ interface PeerStream {
   stream?: MediaStream;
 }
 
-export default function VoiceChannelDetails() {
+const VoiceChat = () => {
   const theme = useTheme();
   const { channelId } = useParams<{ channelId: string }>();
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -225,4 +225,6 @@ export default function VoiceChannelDetails() {
       </Paper>
     </Box>
   );
-}
+};
+
+export default VoiceChat; 

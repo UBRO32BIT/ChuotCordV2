@@ -88,57 +88,69 @@ export default function GuildMemberList({ guild, updateGuild }: GuildInfoProps) 
         };
     }, [socket, guild._id]);
 
-    return <Box>
-        <Typography variant="button" fontWeight="bold" sx={{ mx: 1 }}>Online - {onlineMembers && onlineMembers.length}</Typography>
-        {onlineMembers && onlineMembers.map && onlineMembers.map((member) => (
-            <Box
-                key={member._id}
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    p: 1
-                }}>
-                <Box sx={{ position: "relative", width: 36, height: 36 }}>
+    return <Box sx={{gap: 2, display: "flex", flexDirection: "column"}}>
+        <Box>
+            <Typography
+                color="var(--guild-sidebar-primary-text)" 
+                sx={{ mx: 1 }}>
+                    Online - {onlineMembers && onlineMembers.length}
+                </Typography>
+            {onlineMembers && onlineMembers.map && onlineMembers.map((member) => (
+                <Box
+                    key={member._id}
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        p: 1
+                    }}>
+                    <Box sx={{ position: "relative", width: 36, height: 36 }}>
+                        <Avatar
+                            src={member.memberId.profilePicture}
+                            alt={member.memberId.username}
+                            sx={{ width: 36, height: 36 }}
+                        />
+                        {member.memberId.onlinePresence && <OnlinePresence onlinePresence={member.memberId.onlinePresence} />}
+                    </Box>
+                    <Typography>{member.memberId.username}</Typography>
+                    {member.roles.map((role) => (
+                        <Chip
+                            key={role._id}
+                            label={role.name}
+                            size="small"
+                            style={{
+                                backgroundColor: role.color,
+                                color: "#FFFFFF", // Ensures text contrast
+                                fontWeight: "bold",
+                            }}
+                        />
+                    ))}
+                </Box>
+            ))}
+        </Box>
+        <Box>
+            <Typography 
+                color="var(--guild-sidebar-primary-text)"  
+                sx={{ mx: 1 }}>
+                    Offline - {offlineMembers && offlineMembers.length}
+                </Typography>
+            {offlineMembers && offlineMembers.map && offlineMembers.map((member) => (
+                <Box
+                    key={member._id}
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        p: 1
+                    }}>
                     <Avatar
                         src={member.memberId.profilePicture}
                         alt={member.memberId.username}
                         sx={{ width: 36, height: 36 }}
                     />
-                    {member.memberId.onlinePresence && <OnlinePresence onlinePresence={member.memberId.onlinePresence} />}
+                    <Typography>{member.memberId.username}</Typography>
                 </Box>
-                <Typography>{member.memberId.username}</Typography>
-                {member.roles.map((role) => (
-                    <Chip
-                        key={role._id}
-                        label={role.name}
-                        size="small"
-                        style={{
-                            backgroundColor: role.color,
-                            color: "#FFFFFF", // Ensures text contrast
-                            fontWeight: "bold",
-                        }}
-                    />
-                ))}
-            </Box>
-        ))}
-        <Typography variant="button" fontWeight="bold" sx={{ mx: 1 }}>Offline - {offlineMembers && offlineMembers.length}</Typography>
-        {offlineMembers && offlineMembers.map && offlineMembers.map((member) => (
-            <Box
-                key={member._id}
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    p: 1
-                }}>
-                <Avatar
-                    src={member.memberId.profilePicture}
-                    alt={member.memberId.username}
-                    sx={{ width: 36, height: 36 }}
-                />
-                <Typography>{member.memberId.username}</Typography>
-            </Box>
-        ))}
+            ))}
+        </Box>
     </Box>
 }

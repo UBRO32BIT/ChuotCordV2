@@ -5,12 +5,19 @@ const path = require("path");
 
 class AttachmentService {
     async GetAttactmentContent(filePath) {
-        const fileType = getFileType(filePath);
-        if (fileType === 'code') {
-            const content = fs.readFileSync(path.join(__dirname, '../../../' + filePath), 'utf-8');
-            return content;
+        try {
+            const fileType = getFileType(filePath);
+            if (fileType === 'code') {
+                const content = fs.readFileSync(path.join(__dirname, '../../../' + filePath), 'utf-8');
+                return content;
+            }
         }
-        return null;
+        catch (error) {
+            console.error("Error reading attachment content:", error);
+        }
+        finally {
+            return null;
+        }
     }
 }
 

@@ -15,6 +15,9 @@ export default function GuildInfo({ guild, updateGuild }: GuildInfoProps) {
         textAlign: "left", 
         backgroundColor: "var(--color-background)",
         color: "var(--color-foreground)",
+        gap: 2,
+        display: "flex",
+        flexDirection: "column",
     }}>
         <Box>
             <GuildMemberList guild={guild} updateGuild={updateGuild} />

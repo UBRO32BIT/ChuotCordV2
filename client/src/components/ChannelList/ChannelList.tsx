@@ -111,7 +111,11 @@ export default function ChannelList() {
             alignItems: "center",
             justifyContent: "space-between",
         }}>
-            <Typography variant="button" fontWeight="bold" sx={{ mx: 1 }}>Channels - {channels && channels.length}</Typography>
+            <Typography 
+                color="var(--guild-sidebar-primary-text)" 
+                sx={{ mx: 1 }}>
+                    Channels - {channels && channels.length}
+                </Typography>
             <IconButton onClick={handleOpenCreateChannelModal}>
                 <AddIcon fontSize="small" className="guild-addition-btn" />
             </IconButton>

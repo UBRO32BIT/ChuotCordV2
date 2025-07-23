@@ -16,7 +16,6 @@ const createSocket = (httpServer) => {
 
     io.use((socket, next) => {
         try {
-            console.log(socket.handshake)
             const header = socket.handshake.auth.token;
             if (!header) {
                 console.log(`[SOCKET]: There is no auth header`)
@@ -46,13 +45,15 @@ const createSocket = (httpServer) => {
         }
     });
 
+    const socketList = {};
+
     io.on("connection", async (socket) => {
         console.log(`[SOCKET]: User with ID ${socket.userId} connected`);
         const guildIds = await onlineStatusService.processUserOnline(socket.userId);
         guildIds.forEach(guildId => {
             socket.join(`guild:${guildId}`);
             emitUserOnlineByGuildId(socket, guildId, socket.userId)
-        })
+        });
 
         socket.on("user_connect_guild", async (data) => {
             try {
@@ -63,11 +64,6 @@ const createSocket = (httpServer) => {
             catch (error) {
                 next(new Error(error.message));
             }
-        })
-
-        socket.on("signal", ({ channelId, signalData, toSocketId }) => {
-            console.log("[SOCKET] Signal voice chat data", { channelId, signalData, toSocketId });
-            socket.to(channelId).emit("signal", { signalData, fromSocketId: socket.id });
         });
 
         socket.on("request_online_members", async (data) => {
@@ -81,7 +77,7 @@ const createSocket = (httpServer) => {
                 console.error("[SOCKET]: Error while handle request_online_members event: " + error.message);
                 next(new Error(error.message));
             }
-        })
+        });
 
         socket.on("user_connect_channel", async (data) => {
             try {
@@ -93,74 +89,62 @@ const createSocket = (httpServer) => {
             catch (error) {
                 next(new Error(error.message));
             }
-        })
-
-        socket.on("join_voice_channel", async (data) => {
-            try {
-                if (data && data.channelId) {
-                    socket.join(data.channelId);
-                    socket.to(data.channelId).emit("user_joined_voice_channel", socket.userId);
-                    console.log(`[SOCKET]: User ${socket.userId} connected voice channel ${data.channelId}`);
-                }
-            }
-            catch (error) {
-                next(new Error(error.message));
-            }
         });
 
-        socket.on("leave_voice_channel", async (data) => {
+        // VOICE CHANNEL EVENTS
+        socket.on("request-join-voice-channel", async ({
+            channelId,
+            enableVideo,
+            enableAudio,
+        }) => {
             try {
-                if (data && data.channelId) {
-                    socket.leave(data.channelId);
-                    socket.to(data.channelId).emit("user_left_voice_channel", socket.userId);
-                    console.log(`[SOCKET]: User ${socket.userId} left voice channel ${data.channelId}`);
+                socket.join(channelId);
+                console.log(`[SOCKET]: User ${socket.userId} joined voice channel ${channelId}`);
+                socketList[socket.id] = {
+                    userId: socket.userId, 
+                    userName: socket.username,
+                    channelId,
+                    enableVideo,
+                    enableAudio
+                };
+                const room = io.sockets.adapter.rooms.get(channelId);
+                const users = [];
+
+                if (room) {
+                    for (const clientId of room) {
+                        users.push({ socketId: clientId, info: socketList[clientId] });
+                    }
                 }
+
+                socket.broadcast.to(channelId).emit('receive_list_voice_user', users);
             }
             catch (error) {
+                console.error(`[SOCKET]: Error while handling request-join-voice-channel event: ${error.message}`);
                 next(new Error(error.message));
             }
         });
 
         socket.on("chat", async (data) => {
-            // try {
-            //     if (data && data.channelId && data.message) {
-            //         data.userId = socket.userId;
-            //         const message = await messageService.AddMessage(data);
-            //         console.log(message);
-            //         socket.nsp.to(message.channelId.toString()).emit("chat_received", {
-            //             userId: message.sender,
-            //             content: message.content,
-            //             replyId: message.replyId,
-            //             attachments: message.attachments,
-            //             timestamp: message.timestamp,
-            //         });
-            //     }
-            // }
-            // catch (error) {
-            //     console.error("[SOCKET]: Error while handle chat event: " + error.message);
-            // }
-        })
+            // Chat implementation
+        });
 
         socket.on("user_typing", async (data) => {
             if (data && data.channelId) {
                 emitMemberTyping(socket, data.channelId, socket.username);
             }
-        })
+        });
 
-        socket.on("user_done_typing", async (data) => {
-            //if (data && data.)
-        })
-
-        socket.on("disconnect", async (data) => {
+        socket.on("disconnect", async () => {
             console.log(`[SOCKET]: User disconnected ${socket.userId}`);
             const user = await userService.GetUserById(socket.userId);
             user.guilds.forEach(guild => {
                 emitUserOfflineByGuildId(socket, guild._id, socket.userId);
             });
+
             await onlineStatusService.processUserOffline(socket.userId);
-        })
-    })
-}
+        });
+    });
+};
 
 const getSocket = () => {
     if (!io) {

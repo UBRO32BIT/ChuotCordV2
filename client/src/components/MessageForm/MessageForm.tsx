@@ -6,8 +6,10 @@ import { Channel } from "../../shared/guild.interface";
 import { Cancel01Icon } from "hugeicons-react";
 import { AddMessage } from "../../services/message.service";
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import SendIcon from '@mui/icons-material/Send';
 import MemberTyping from "../MemberTyping/MemberTyping";
+import { CustomEmojiPicker } from "../CustomEmojiPicker";
 
 // Utility function to debounce events
 const debounce = (func: (...args: any[]) => void, delay: number) => {
@@ -25,6 +27,7 @@ export default function MessageForm({ guildId, ...channel }: { guildId: string }
     const [previewUrlList, setPreviewUrlList] = React.useState<string[]>([]);
     const [isDragging, setIsDragging] = React.useState(false);
     const [message, setMessage] = React.useState<string>('');
+    const [showEmojiPicker, setShowEmojiPicker] = React.useState(false);
     const socket = useSocket();
 
     const emitTypingEvent = React.useCallback(
@@ -76,6 +79,23 @@ export default function MessageForm({ guildId, ...channel }: { guildId: string }
         const droppedFiles = Array.from(e.dataTransfer.files);
         setFileList(prev => [...prev, ...droppedFiles]);
     };
+
+    const insertEmoji = (emoji: string) => {
+        const textarea = document.querySelector(".message-input-field") as HTMLTextAreaElement;
+        if (textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const newMessage = message.slice(0, start) + emoji + message.slice(end);
+            setMessage(newMessage);
+    
+            // Restore focus and cursor position
+            setTimeout(() => {
+                textarea.focus();
+                textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+            }, 0);
+        }
+    };
+
     const removeImage = (index: number) => {
         // Remove the image from previewUrlList
         const updatedPreviewUrlList = previewUrlList.filter((_, i) => i !== index);
@@ -234,8 +254,8 @@ export default function MessageForm({ guildId, ...channel }: { guildId: string }
             <Box sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 0.5,
-            }}>
+            }}
+            className="message-form">
                 <textarea
                     name="message"
                     value={message}
@@ -257,6 +277,14 @@ export default function MessageForm({ guildId, ...channel }: { guildId: string }
                     }}
                 />
                 <div className="message-form-actions">
+                <button className="emoji-picker-button" type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+                            <EmojiEmotionsIcon/>
+                        </button>
+                    {showEmojiPicker && (
+                        <div style={{ position: "absolute", bottom: "110%", right: "5%", zIndex: 10, border: "solid", borderRadius: "8px"}}>
+                            <CustomEmojiPicker onSelect={insertEmoji} />
+                        </div>
+                    )}
                     <div className="file-upload-wrapper">
                         <button className="file-input-field">
                             <InsertDriveFileIcon />

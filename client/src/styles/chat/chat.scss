@@ -11,18 +11,22 @@
     --group-color-focus: #fff;
     --group-border-focus: var(--input-border-focus);
     --group-background-focus: #678EFE;
-    
+
     --color-background: #fafafa;
     --color-foreground: #1f2023;
     --hover-background: rgba(0, 0, 0, 0.1);
 }
 
 body.dark {
-    --color-background: #0c0414;
+    --guild-sidebar-primary-text: #B0B3B8;
+    --left-sidebar-primary-text: #B0B3B8;
+    --icon-primary: #aaaab1;
+    --color-background: #101414;
+    --guild-sidebar-background: #08040c;
     --color-foreground: #EFEFEF;
-    --input-background: #0f0d54;
+    --input-background: #303030;
     --input-color: #EFEFEF;
-    --input-placeholder: #A0A0A0; 
+    --input-placeholder: #A0A0A0;
     --input-border: #3A3F68;
     --hover-background: rgba(255, 255, 255, 0.1);
 }
@@ -31,21 +35,11 @@ body.dark {
     color: var(--color-foreground);
 }
 
-.message-input-field {
-    flex: 1;
-    padding: 8px 16px;
-    margin: 3px 0;
-    line-height: 1.5;
-    font-size: 14px;
-    font-weight: 500;
-    font-family: inherit;
-    border-radius: 6px;
-    resize: none;
-    overflow: hidden;
+.message-form {
     border: 1px solid var(--input-border);
     background: var(--input-background);
     color: var(--input-color);
-    transition: border 0.3s ease;
+    border-radius: 6px;
 
     &::placeholder {
         color: var(--input-placeholder);
@@ -57,23 +51,65 @@ body.dark {
     }
 }
 
+.message-input-field {
+    flex: 1;
+    margin: 0 2%;
+    line-height: 1.5;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    resize: none;
+    overflow: hidden;
+    border: none;
+    background: var(--input-background);
+    color: var(--input-color);
+    transition: border 0.3s ease;
+
+    &::placeholder {
+        border: none;
+    }
+
+    &:focus {
+        outline: none;
+        border: none;
+    }
+}
+
+.emoji-picker-button {
+    border: none;
+    color: var(--color-foreground);
+    background-color: var(--input-background);
+    border-radius: 8px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    padding: 0 7px;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #484444;
+    }
+}
+
 .file-upload-wrapper {
     position: relative;
     overflow: hidden;
     display: flex;
     align-items: center;
-    margin-left: 8px;
+    cursor: pointer;
 }
 
 .file-icon {
     color: var(--color-foreground);
+    cursor: pointer;
 }
 
 .file-input-field {
-    border: 2px solid gray;
+    border: none;
     color: var(--color-foreground);
     background-color: var(--input-background);
-    border-radius: 8px;
     font-weight: bold;
     display: flex;
     align-items: center;
@@ -141,7 +177,7 @@ body.dark {
         @media (max-width: 600px) {
             width: 240px;
             transition: transform 0.3s ease;
-            
+
             &.closed {
                 transform: translateX(100%);
             }
@@ -152,12 +188,12 @@ body.dark {
 .message-form-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     margin-left: 8px;
 }
 
 .submit-button {
-    border: 2px solid gray;
+    border: none;
     color: var(--color-foreground);
     background-color: var(--input-background);
     border-radius: 8px;
@@ -168,14 +204,15 @@ body.dark {
     height: 38px;
     padding: 0 7px;
     cursor: pointer;
-    
+
     &:hover {
-        background-color: rgba(128, 128, 128, 0.1);
+        background-color: #484444;
     }
 }
 
 .guild-item {
     cursor: pointer;
+
     &:hover {
         background-color: var(--hover-background);
     }
@@ -183,6 +220,7 @@ body.dark {
 
 .channel-item {
     cursor: pointer;
+
     &:hover {
         background-color: var(--hover-background);
     }
@@ -203,10 +241,84 @@ body.dark {
 *::-webkit-scrollbar-thumb {
     border-radius: 5px;
     background-color: #78989B;
+
     &:hover {
         background-color: #6A8589;
     }
+
     &:active {
         background-color: #506568;
+    }
+}
+
+// EMOJI PICKER
+[frimousse-root] {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    height: 352px;
+    background: light-dark(#fff, #171717);
+    isolation: isolate;
+}
+
+[frimousse-search] {
+    position: relative;
+    z-index: 10;
+    appearance: none;
+    margin-block-start: 8px;
+    margin-inline: 8px;
+    padding: 8px 10px;
+    background: light-dark(#f5f5f5, #262626);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+[frimousse-viewport] {
+    position: relative;
+    flex: 1;
+    outline: none;
+}
+
+[frimousse-loading],
+[frimousse-empty] {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: light-dark(#a1a1a1, #737373);
+    font-size: 14px;
+}
+
+[frimousse-list] {
+    padding-block-end: 12px;
+    user-select: none;
+}
+
+[frimousse-category-header] {
+    padding: 12px 12px 6px;
+    background: light-dark(#fff, #171717);
+    color: light-dark(#525252, #a1a1a1);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+[frimousse-row] {
+    padding-inline: 12px;
+    scroll-margin-block: 12px;
+}
+
+[frimousse-emoji] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: transparent;
+    font-size: 18px;
+
+    &[data-active] {
+        background: light-dark(#f5f5f5, #262626);
     }
 }

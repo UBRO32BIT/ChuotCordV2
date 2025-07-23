@@ -122,7 +122,12 @@ export default function Chat() {
     }, [socket, handleReconnect, enqueueSnackbar]);
 
     const sidebar = (
-        <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+        <Box sx={{ 
+            height: "100vh", 
+            display: "flex", 
+            flexDirection: "column", 
+            backgroundColor: "var(--guild-sidebar-background)",
+        }}>
             <Box sx={{ flex: "0 1 auto" }}>
                 <UserMiniCard />
             </Box>
@@ -179,7 +184,7 @@ export default function Chat() {
                         {sidebar}
                     </Drawer>
                 ) : (
-                    <Box sx={{ width: 240, borderRight: '1px solid grey' }}>
+                    <Box sx={{ width: 240 }}>
                         {sidebar}
                     </Box>
                 )}
