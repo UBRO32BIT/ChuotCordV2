@@ -33,12 +33,6 @@ export const fetchGuilds = createAsyncThunk(
 export const fetchGuildById = createAsyncThunk(
     "guilds/fetchGuildById",
     async (guildId: string, { getState, rejectWithValue }) => {
-        const state = getState() as { guilds: IGuildsState };
-        const existingGuild = state.guilds.guilds.find(guild => guild._id === guildId);
-        if (existingGuild) {
-            return existingGuild;
-        }
-
         try {
             return await GetGuildById(guildId);
         } catch (error: any) {
@@ -49,14 +43,14 @@ export const fetchGuildById = createAsyncThunk(
 
 export const updateGuild = createAsyncThunk(
     "guilds/updateGuild",
-    async (data: any, { rejectWithValue }) => {
-        try {
-            return await UpdateGuild(data.guildId, data);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
-        }
+    async ({ guildId, formData }: { guildId: string; formData: FormData }, { rejectWithValue }) => {
+      try {
+        return await UpdateGuild(guildId, formData);
+      } catch (error: any) {
+        return rejectWithValue(error.message);
+      }
     }
-);
+  );
 
 export const createGuild = createAsyncThunk(
     "guilds/createGuild",

@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
     --input-color: #3f4246;
     --input-border: #CDD9ED;
@@ -15,6 +19,18 @@
     --color-background: #fafafa;
     --color-foreground: #1f2023;
     --hover-background: rgba(0, 0, 0, 0.1);
+
+    --dialog-bg: #ffffff;
+    --dialog-text: #1f2023;
+    --dialog-border: #e5e7eb;
+    --button-primary: #4f46e5;
+    --button-primary-hover: #4338ca;
+    --button-secondary: #e5e7eb;
+    --button-secondary-hover: #d1d5db;
+    --button-danger: #ef4444;
+    --button-danger-hover: #dc2626;
+    --input-focus: #4f46e5;
+    --dropdown-hover: rgba(0, 0, 0, 0.05);
 }
 
 body.dark {
@@ -29,6 +45,18 @@ body.dark {
     --input-placeholder: #A0A0A0;
     --input-border: #3A3F68;
     --hover-background: rgba(255, 255, 255, 0.1);
+
+    --dialog-bg: #1f2937;
+    --dialog-text: #f3f4f6;
+    --dialog-border: #374151;
+    --button-primary: #6366f1;
+    --button-primary-hover: #4f46e5;
+    --button-secondary: #374151;
+    --button-secondary-hover: #4b5563;
+    --button-danger: #dc2626;
+    --button-danger-hover: #b91c1c;
+    --input-focus: #6366f1;
+    --dropdown-hover: rgba(255, 255, 255, 0.05);
 }
 
 .guild-addition-btn {

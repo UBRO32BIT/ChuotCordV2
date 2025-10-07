@@ -75,6 +75,11 @@ module.exports = {
     },
     from: envVars.EMAIL_FROM,
   },
+  rtc: {
+    minPort: envVars.RTC_MIN_PORT,
+    maxPort: envVars.RTC_MAX_PORT,
+    announcedIp: envVars.RTC_ANNOUNCED_IP,
+  },
   serverHost: envVars.SERVER_HOST,
   clientHost: envVars.CLIENT_HOST,
   sslCertPath: envVars.SSL_CERT_PATH,

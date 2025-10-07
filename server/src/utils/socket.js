@@ -32,8 +32,7 @@ const createSocket = (httpServer) => {
             jwt.verify(token, config.jwt.accessSecret, (err, decoded) => {
                 if (err) {
                     console.log(`[SOCKET]: Invalid access token: ${err.message}`)
-                    socket.disconnect();
-                    return;
+                    return next(new Error("invalid token"));
                 }
                 socket.userId = decoded.sub;
                 socket.username = decoded.username;
@@ -87,39 +86,6 @@ const createSocket = (httpServer) => {
                 }
             }
             catch (error) {
-                next(new Error(error.message));
-            }
-        });
-
-        // VOICE CHANNEL EVENTS
-        socket.on("request-join-voice-channel", async ({
-            channelId,
-            enableVideo,
-            enableAudio,
-        }) => {
-            try {
-                socket.join(channelId);
-                console.log(`[SOCKET]: User ${socket.userId} joined voice channel ${channelId}`);
-                socketList[socket.id] = {
-                    userId: socket.userId, 
-                    userName: socket.username,
-                    channelId,
-                    enableVideo,
-                    enableAudio
-                };
-                const room = io.sockets.adapter.rooms.get(channelId);
-                const users = [];
-
-                if (room) {
-                    for (const clientId of room) {
-                        users.push({ socketId: clientId, info: socketList[clientId] });
-                    }
-                }
-
-                socket.broadcast.to(channelId).emit('receive_list_voice_user', users);
-            }
-            catch (error) {
-                console.error(`[SOCKET]: Error while handling request-join-voice-channel event: ${error.message}`);
                 next(new Error(error.message));
             }
         });

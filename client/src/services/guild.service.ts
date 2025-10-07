@@ -66,20 +66,20 @@ const CreateGuildRoles = async (guildId: string, data: any) => {
     })
 }
 
-const UpdateGuild = async (guildId: string, data: any) => {
+const UpdateGuild = async (guildId: string, data: FormData) => {
     return axiosClient.patch(`/guilds/${guildId}`, data, {
         headers: {
             'Content-Type': 'multipart/form-data',
-        }
+        },
     })
     .then((res) => {
         return res.data.data;
     })
     .catch((error) => {
         console.error(error);
-        throw Error(error.response.data.message);
-    });
-};
+        throw Error(error.response.data.message)
+    })
+}
 
 const TransferOwnership = async (guildId: string, newOwnerId: string) => {
     return axiosClient.patch(`/guilds/${guildId}/transfer-ownership`, { newOwnerId })

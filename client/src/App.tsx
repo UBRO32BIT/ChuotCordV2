@@ -28,7 +28,7 @@ function App() {
   
   return (
     <div className="App">
-      <SocketProvider>
+      
         <SnackbarProvider
           maxSnack={3}
           anchorOrigin={customAnchorOrigin}
@@ -38,7 +38,6 @@ function App() {
           }}>
           <Router />
         </SnackbarProvider>
-      </SocketProvider>
     </div>
   );
 }

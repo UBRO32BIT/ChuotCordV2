@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import GuildMiniCard from "../GuildMiniCard/GuildMiniCard";
 import { Link } from "react-router-dom";
 import { AppDispatch, RootState } from "../../store";
-import { fetchGuilds, setGuild, updateGuild } from "../../redux/slices/guildsSlice";
+import { fetchGuilds, setGuild } from "../../redux/slices/guildsSlice";
 import { useSnackbar } from "notistack";
 import { useSocket } from "../../context/SocketProvider";
 

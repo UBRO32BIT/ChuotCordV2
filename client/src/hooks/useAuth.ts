@@ -26,7 +26,8 @@ export const useAuth = () => {
           const accessToken: any = await RefreshToken();
           if (accessToken) {
             setAccessToken(accessToken);
-            axiosClient.defaults.headers.common["Authorization"] = 'Bearer ' + accessToken;
+            console.log(axiosClient.defaults.headers.Authorization);
+            axiosClient.defaults.headers.Authorization = 'Bearer ' + accessToken;
             error.config.headers["Authorization"] = 'Bearer ' + accessToken;
             return axiosClient(error.config);
           }

@@ -9,7 +9,7 @@ import ChatOverview from "../../components/ChatOverview/ChatOverview";
 import GuildDetails from "../../components/GuildDetails/GuildDetails";
 import GuildAddition from "../../components/GuildAddition/GuildAddition";
 import { useSnackbar } from "notistack";
-import { useSocket } from "../../context/SocketProvider";
+import { SocketProvider, useSocket } from "../../context/SocketProvider";
 import { RefreshToken } from '../../services/auth.service';
 import { setAccessToken } from '../../utils/localStorage';
 import { useSelector } from 'react-redux';
@@ -143,6 +143,7 @@ export default function Chat() {
     );
 
     return (
+        <SocketProvider>
         <Box sx={{ display: 'flex', height: '100vh' }} className="chat-container">
             <Helmet>
                 <title>Chat | Chuotcord</title>
@@ -204,5 +205,6 @@ export default function Chat() {
                 </Routes>
             </Box>
         </Box>
+        </SocketProvider>
     );
 }

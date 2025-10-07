@@ -63,10 +63,11 @@ class MessageController {
             const { message } = req.body;
             // Classify files by type and generate file URLs
             const fileUrls = req?.files?.map((file) => {
-                const fileType = getFileType(file.originalname); // Get the file type based on the filename
+                const fileType = getFileType(file.originalname);
                 return {
-                    type: fileType, // Use the classified type
+                    type: fileType,
                     url: `/uploads/${file.filename}`,
+                    originalFileName: file.originalname,
                 };
             });
 

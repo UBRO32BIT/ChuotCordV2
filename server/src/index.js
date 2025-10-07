@@ -5,6 +5,7 @@ const logger = require('./config/logger');
 const http = require("http");
 const https = require("https");
 const { createSocket } = require('./utils/socket');
+const { createRTCSocket } = require('./sockets/rtc.socket');
 const connectToMongoDB = require('./database/mongo.database');
 const fs = require('fs');
 
@@ -17,6 +18,7 @@ const httpServer = useHttps ? https.createServer(options, app) : http.createServ
 
 //Create socket server
 createSocket(httpServer);
+createRTCSocket(httpServer);
 
 //Connect to mongodb
 connectToMongoDB();

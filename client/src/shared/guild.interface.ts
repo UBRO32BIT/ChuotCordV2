@@ -49,6 +49,8 @@ export interface Channel {
 export interface InvitePartial {
     _id: string,
     string: string,
+    expiration: string,
+    expiresAt: Date | null,
 }
 export interface Invite {
     _id: string,

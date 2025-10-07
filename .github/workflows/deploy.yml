@@ -32,9 +32,11 @@ jobs:
       - name: Create server .env file
         run: |
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" > server/.env
+          echo "PORT=${{ secrets.PORT }}" >> server/.env
           echo "MONGODB_URL=${{ secrets.MONGODB_URL }}" >> server/.env
           echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> server/.env
           echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> server/.env
+          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> server/.env
           echo "JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}" >> server/.env
           echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}" >> server/.env
           echo "JWT_RECOVERY_SECRET=${{ secrets.JWT_RECOVERY_SECRET }}" >> server/.env
@@ -42,9 +44,13 @@ jobs:
           echo "JWT_REFRESH_EXPIRATION_DAYS=${{ secrets.JWT_REFRESH_EXPIRATION_DAYS }}" >> server/.env
           echo "JWT_RESET_PASSWORD_EXPIRATION_MINUTES=${{ secrets.JWT_RESET_PASSWORD_EXPIRATION_MINUTES }}" >> server/.env
           echo "JWT_VERIFY_EMAIL_EXPIRATION_MINUTES=${{ secrets.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES }}" >> server/.env
+          echo "RTC_MIN_PORT=${{ secrets.RTC_MIN_PORT }}" >> server/.env
+          echo "RTC_MAX_PORT=${{ secrets.RTC_MAX_PORT }}" >> server/.env
+          echo "RTC_ANNOUNCED_IP=${{ secrets.RTC_ANNOUNCED_IP }}" >> server/.env
           echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> server/.env
           echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> server/.env
           echo "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> server/.env
+          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> server/.env
           echo "EMAIL_FROM=${{ secrets.EMAIL_FROM }}" >> server/.env
           echo "SERVER_HOST=${{ secrets.SERVER_HOST }}" >> server/.env
           echo "CLIENT_HOST=${{ secrets.CLIENT_HOST }}" >> server/.env
@@ -53,6 +59,7 @@ jobs:
           echo "UPLOADS_DIR=${{ secrets.UPLOADS_DIR }}" >> server/.env
           echo "CORS_ORIGIN_DEVELOPMENT=${{ secrets.CORS_ORIGIN_DEVELOPMENT }}" >> server/.env
           echo "CORS_ORIGIN_PRODUCTION=${{ secrets.CORS_ORIGIN_PRODUCTION }}" >> server/.env
+          echo "USE_HTTPS=${{ secrets.USE_HTTPS }}" >> server/.env
 
       - name: Cache Docker layers
         uses: actions/cache@v4
@@ -90,7 +97,8 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
           
-          scp -i private_key docker-compose.yml $SSH_USERNAME@$SSH_HOST:/ChuotCordV2 
+          scp -i private_key client/.env $SSH_USERNAME@$SSH_HOST:/ChuotCordV2/client/.env
+          scp -i private_key server/.env $SSH_USERNAME@$SSH_HOST:/ChuotCordV2/server/.env
           
           ssh -i private_key $SSH_USERNAME@$SSH_HOST << 'EOF'
             sudo -s
