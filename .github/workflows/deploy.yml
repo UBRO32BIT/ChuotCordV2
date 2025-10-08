@@ -77,7 +77,8 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
         run: |
-          scp -i private_key docker-compose.yml $SSH_USERNAME@$SSH_HOST:/ChuotCordV2/docker-compose.yml
+          scp -i private_key docker-compose.yml $SSH_USERNAME@$SSH_HOST:~/docker-compose.yml
+          ssh -i private_key $SSH_USERNAME@$SSH_HOST "sudo mv ~/docker-compose.yml /ChuotCordV2/docker-compose.yml && sudo chown root:root /ChuotCordV2/docker-compose.yml"
 
       - name: Pull images and restart on remote
         env:
