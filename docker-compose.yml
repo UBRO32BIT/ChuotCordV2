@@ -12,18 +12,37 @@ services:
       - uploads:/usr/src/server/uploads
       - server_node_modules:/usr/src/server/node_modules
       - ./certs:/usr/src/certificates
-    env_file:
-      - ./server/.env
     environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      MONGODB_URL: ${MONGODB_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_RECOVERY_SECRET: ${JWT_RECOVERY_SECRET}
+      JWT_ACCESS_EXPIRATION_MINUTES: ${JWT_ACCESS_EXPIRATION_MINUTES}
+      JWT_REFRESH_EXPIRATION_DAYS: ${JWT_REFRESH_EXPIRATION_DAYS}
+      JWT_RESET_PASSWORD_EXPIRATION_MINUTES: ${JWT_RESET_PASSWORD_EXPIRATION_MINUTES}
+      JWT_VERIFY_EMAIL_EXPIRATION_MINUTES: ${JWT_VERIFY_EMAIL_EXPIRATION_MINUTES}
+      RTC_MIN_PORT: ${RTC_MIN_PORT}
+      RTC_MAX_PORT: ${RTC_MAX_PORT}
+      RTC_ANNOUNCED_IP: ${RTC_ANNOUNCED_IP}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
+      SERVER_HOST: ${SERVER_HOST}
+      CLIENT_HOST: ${CLIENT_HOST}
+      SSL_CERT_PATH: ${SSL_CERT_PATH}
+      SSL_KEY_PATH: ${SSL_KEY_PATH}
+      UPLOADS_DIR: ${UPLOADS_DIR}
+      CORS_ORIGIN_DEVELOPMENT: ${CORS_ORIGIN_DEVELOPMENT}
+      CORS_ORIGIN_PRODUCTION: ${CORS_ORIGIN_PRODUCTION}
+      USE_HTTPS: ${USE_HTTPS}
       CERT_PATH: /usr/src/certificates
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: "256M"
-        reservations:
-          cpus: "0.25"
-          memory: "128M"
 
   client:
     image: ubro3/chuotcord-client-service:latest
@@ -33,18 +52,15 @@ services:
     volumes:
       - client_node_modules:/usr/src/client/node_modules
       - ./certs:/usr/src/certificates
-    env_file:
-      - ./client/.env
     environment:
+      HTTPS: ${HTTPS}
+      SSL_CRT_FILE: ${SSL_CRT_FILE}
+      SSL_KEY_FILE: ${SSL_KEY_FILE}
+      REACT_APP_CLIENT_HOST: ${REACT_APP_CLIENT_HOST}
+      REACT_APP_CHAT_SERVER_HOST: ${REACT_APP_CHAT_SERVER_HOST}
+      REACT_APP_CMS_SERVER_HOST: ${REACT_APP_CMS_SERVER_HOST}
+      REACT_APP_CHAT_SERVER_API_URL: ${REACT_APP_CHAT_SERVER_API_URL}
       CERT_PATH: /usr/src/certificates
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: "1280M"
-        reservations:
-          cpus: "0.25"
-          memory: "768M"
 
   nginx:
     image: nginx:latest
@@ -57,11 +73,6 @@ services:
     volumes:
       - ./nginx:/etc/nginx/conf.d
       - ./certs:/etc/nginx/certs
-    deploy:
-      resources:
-        limits:
-          cpus: "0.25"
-          memory: "64M"
 
   redis:
     image: redis
@@ -75,11 +86,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: "0.25"
-          memory: "128M"
 
   mongodb:
     image: mongo:latest
@@ -89,11 +95,6 @@ services:
     volumes:
       - mongo_data:/data/db
       - ./certs:/usr/src/certificates
-    deploy:
-      resources:
-        limits:
-          cpus: "0.15"
-          memory: "128M"
     healthcheck:
       test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
       interval: 10s

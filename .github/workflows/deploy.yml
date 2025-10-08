@@ -20,50 +20,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Create client .env file
-        run: |
-          mkdir -p client
-          echo "SSL_CRT_FILE=${{ secrets.SSL_CRT_FILE }}" > client/.env
-          echo "SSL_KEY_FILE=${{ secrets.SSL_KEY_FILE }}" >> client/.env
-          echo "HTTPS=${{ secrets.HTTPS }}" >> client/.env
-          echo "REACT_APP_CLIENT_HOST=${{ secrets.REACT_APP_CLIENT_HOST }}" >> client/.env
-          echo "REACT_APP_CHAT_SERVER_HOST=${{ secrets.REACT_APP_CHAT_SERVER_HOST }}" >> client/.env
-          echo "REACT_APP_CMS_SERVER_HOST=${{ secrets.REACT_APP_CMS_SERVER_HOST }}" >> client/.env
-          echo "REACT_APP_CHAT_SERVER_API_URL=${{ secrets.REACT_APP_CHAT_SERVER_API_URL }}" >> client/.env
-
-      - name: Create server .env file
-        run: |
-          mkdir -p server
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" > server/.env
-          echo "PORT=${{ secrets.PORT }}" >> server/.env
-          echo "MONGODB_URL=${{ secrets.MONGODB_URL }}" >> server/.env
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> server/.env
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> server/.env
-          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> server/.env
-          echo "JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}" >> server/.env
-          echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}" >> server/.env
-          echo "JWT_RECOVERY_SECRET=${{ secrets.JWT_RECOVERY_SECRET }}" >> server/.env
-          echo "JWT_ACCESS_EXPIRATION_MINUTES=${{ secrets.JWT_ACCESS_EXPIRATION_MINUTES }}" >> server/.env
-          echo "JWT_REFRESH_EXPIRATION_DAYS=${{ secrets.JWT_REFRESH_EXPIRATION_DAYS }}" >> server/.env
-          echo "JWT_RESET_PASSWORD_EXPIRATION_MINUTES=${{ secrets.JWT_RESET_PASSWORD_EXPIRATION_MINUTES }}" >> server/.env
-          echo "JWT_VERIFY_EMAIL_EXPIRATION_MINUTES=${{ secrets.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES }}" >> server/.env
-          echo "RTC_MIN_PORT=${{ secrets.RTC_MIN_PORT }}" >> server/.env
-          echo "RTC_MAX_PORT=${{ secrets.RTC_MAX_PORT }}" >> server/.env
-          echo "RTC_ANNOUNCED_IP=${{ secrets.RTC_ANNOUNCED_IP }}" >> server/.env
-          echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> server/.env
-          echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> server/.env
-          echo "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> server/.env
-          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> server/.env
-          echo "EMAIL_FROM=${{ secrets.EMAIL_FROM }}" >> server/.env
-          echo "SERVER_HOST=${{ secrets.SERVER_HOST }}" >> server/.env
-          echo "CLIENT_HOST=${{ secrets.CLIENT_HOST }}" >> server/.env
-          echo "SSL_CERT_PATH=${{ secrets.SSL_CERT_PATH }}" >> server/.env
-          echo "SSL_KEY_PATH=${{ secrets.SSL_KEY_PATH }}" >> server/.env
-          echo "UPLOADS_DIR=${{ secrets.UPLOADS_DIR }}" >> server/.env
-          echo "CORS_ORIGIN_DEVELOPMENT=${{ secrets.CORS_ORIGIN_DEVELOPMENT }}" >> server/.env
-          echo "CORS_ORIGIN_PRODUCTION=${{ secrets.CORS_ORIGIN_PRODUCTION }}" >> server/.env
-          echo "USE_HTTPS=${{ secrets.USE_HTTPS }}" >> server/.env
-
       - name: Upload docker-compose.yml as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -95,26 +51,12 @@ jobs:
           docker-compose -f docker-compose.yml build
           docker-compose -f docker-compose.yml push
 
-      - name: Upload env files as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: env-files
-          path: |
-            client/.env
-            server/.env
-
   deploy:
     name: Deploy to Server
     runs-on: ubuntu-latest
     needs: build-push-image
 
     steps:
-      - name: Download env files
-        uses: actions/download-artifact@v4
-        with:
-          name: env-files
-          path: ./env-files
-
       - name: Download compose file
         uses: actions/download-artifact@v4
         with:
@@ -128,24 +70,14 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
           mkdir -p ~/.ssh
-          # add host to known_hosts to avoid interactive prompt (use SSH_HOST secret)
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Create remote directories
+      - name: Copy compose file to remote
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
         run: |
-          ssh -i private_key $SSH_USERNAME@$SSH_HOST "sudo mkdir -p /ChuotCordV2/client /ChuotCordV2/server"
-
-      - name: Copy env files to remote
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-        run: |
-          scp -i private_key compose/docker-compose.yml $SSH_USERNAME@$SSH_HOST:/ChuotCordV2/docker-compose.yml
-          scp -i private_key env-files/client/.env $SSH_USERNAME@$SSH_HOST:/ChuotCordV2/client/.env
-          scp -i private_key env-files/server/.env $SSH_USERNAME@$SSH_HOST:/ChuotCordV2/server/.env
+          scp -i private_key docker-compose.yml $SSH_USERNAME@$SSH_HOST:/ChuotCordV2/docker-compose.yml
 
       - name: Pull images and restart on remote
         env:
@@ -155,6 +87,40 @@ jobs:
           ssh -i private_key $SSH_USERNAME@$SSH_HOST << 'EOF'
             sudo -s
             cd /ChuotCordV2 || exit 1
+            export NODE_ENV=${{ secrets.NODE_ENV }}
+            export PORT=${{ secrets.PORT }}
+            export MONGODB_URL=${{ secrets.MONGODB_URL }}
+            export REDIS_HOST=${{ secrets.REDIS_HOST }}
+            export REDIS_PORT=${{ secrets.REDIS_PORT }}
+            export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            export JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}
+            export JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
+            export JWT_RECOVERY_SECRET=${{ secrets.JWT_RECOVERY_SECRET }}
+            export JWT_ACCESS_EXPIRATION_MINUTES=${{ secrets.JWT_ACCESS_EXPIRATION_MINUTES }}
+            export JWT_REFRESH_EXPIRATION_DAYS=${{ secrets.JWT_REFRESH_EXPIRATION_DAYS }}
+            export JWT_RESET_PASSWORD_EXPIRATION_MINUTES=${{ secrets.JWT_RESET_PASSWORD_EXPIRATION_MINUTES }}
+            export JWT_VERIFY_EMAIL_EXPIRATION_MINUTES=${{ secrets.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES }}
+            export RTC_MIN_PORT=${{ secrets.RTC_MIN_PORT }}
+            export RTC_MAX_PORT=${{ secrets.RTC_MAX_PORT }}
+            export RTC_ANNOUNCED_IP=${{ secrets.RTC_ANNOUNCED_IP }}
+            export SMTP_HOST=${{ secrets.SMTP_HOST }}
+            export SMTP_PORT=${{ secrets.SMTP_PORT }}
+            export SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}
+            export SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
+            export EMAIL_FROM=${{ secrets.EMAIL_FROM }}
+            export SERVER_HOST=${{ secrets.SERVER_HOST }}
+            export CLIENT_HOST=${{ secrets.CLIENT_HOST }}
+            export SSL_CERT_PATH=${{ secrets.SSL_CERT_PATH }}
+            export SSL_KEY_PATH=${{ secrets.SSL_KEY_PATH }}
+            export UPLOADS_DIR=${{ secrets.UPLOADS_DIR }}
+            export CORS_ORIGIN_DEVELOPMENT=${{ secrets.CORS_ORIGIN_DEVELOPMENT }}
+            export CORS_ORIGIN_PRODUCTION=${{ secrets.CORS_ORIGIN_PRODUCTION }}
+            export USE_HTTPS=${{ secrets.USE_HTTPS }}
+            export HTTPS=${{ secrets.HTTPS }}
+            export REACT_APP_CLIENT_HOST=${{ secrets.REACT_APP_CLIENT_HOST }}
+            export REACT_APP_CHAT_SERVER_HOST=${{ secrets.REACT_APP_CHAT_SERVER_HOST }}
+            export REACT_APP_CMS_SERVER_HOST=${{ secrets.REACT_APP_CMS_SERVER_HOST }}
+            export REACT_APP_CHAT_SERVER_API_URL=${{ secrets.REACT_APP_CHAT_SERVER_API_URL }}
             docker-compose pull
             docker-compose up -d
             echo "completed"
