@@ -96,6 +96,8 @@ jobs:
           chmod 600 private_key
           mkdir -p ~/.ssh
           ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+
+          ssh -i private_key $SSH_USERNAME@$SSH_HOST "mkdir -p /ChuotCordV2/client /ChuotCordV2/server"
           
           scp -i private_key client/.env $SSH_USERNAME@$SSH_HOST:/ChuotCordV2/client/.env
           scp -i private_key server/.env $SSH_USERNAME@$SSH_HOST:/ChuotCordV2/server/.env
