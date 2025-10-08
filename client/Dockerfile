@@ -10,8 +10,8 @@ COPY package.json /usr/src/client/
 # Increase memory limit for Node.js
 ENV NODE_OPTIONS="--max-old-space-size=4096 --openssl-legacy-provider"
 
-RUN npm install
-RUN npm install -g @craco/craco
+RUN npm install --legacy-peer-deps
+RUN npm install -g @craco/craco --legacy-peer-deps
 # If you are building your code for production
 # RUN npm ci --omit=dev
 
