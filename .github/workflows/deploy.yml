@@ -46,10 +46,15 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose version
 
-      - name: Build and push Docker images
+      - name: Build and push client
         run: |
-          docker-compose -f docker-compose.yml build --no-cache --pull
-          docker-compose -f docker-compose.yml push
+          docker build --no-cache -t ubro3/chuotcord-client-service:latest ./client
+          docker push ubro3/chuotcord-client-service:latest
+
+      - name: Build and push server
+        run: |
+          docker build --no-cache -t ubro3/chuotcord-chat-service:latest ./server
+          docker push ubro3/chuotcord-chat-service:latest
 
   deploy:
     name: Deploy to Server
@@ -123,6 +128,6 @@ jobs:
             export REACT_APP_CMS_SERVER_HOST=${{ secrets.REACT_APP_CMS_SERVER_HOST }}
             export REACT_APP_CHAT_SERVER_API_URL=${{ secrets.REACT_APP_CHAT_SERVER_API_URL }}
             docker compose pull
-            docker compose up -d
+            docker compose up -d --remove-orphans --force-recreate
             echo "completed"
           EOF
