@@ -12,6 +12,7 @@ ENV NODE_OPTIONS="--max-old-space-size=4096 --openssl-legacy-provider"
 
 RUN npm install --legacy-peer-deps
 RUN npm install -g @craco/craco --legacy-peer-deps
+RUN npm install ajv@^8.17.1 ajv-keywords@^5.1.0 --legacy-peer-deps
 # If you are building your code for production
 # RUN npm ci --omit=dev
 
